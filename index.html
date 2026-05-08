@@ -1021,26 +1021,96 @@ function setGCalUI(on) {
 window.sincronizarHistorico = async () => {
   if(!gcalOk || !calId) { toast('Conecte o Google Agenda primeiro.', true); return; }
   if(!jobs.length) { toast('Nenhum job para sincronizar.', true); return; }
-  if(!confirm(`Enviar ${jobs.length} job(s) para o Google Agenda?\nIsso criará eventos para todos os jobs cadastrados.`)) return;
+  if(!confirm(`Sincronizar ${jobs.length} job(s) com o Google Agenda?\nEventos duplicados serão removidos automaticamente.`)) return;
 
   const info = document.getElementById('sync-hist-info');
-  let ok = 0, erro = 0;
+  if(info) { info.style.display = 'block'; info.textContent = 'Buscando eventos existentes...'; }
 
-  for(const job of jobs) {
-    try {
-      await criarEventos(job);
-      ok++;
-      if(info) info.textContent = `Sincronizando... ${ok}/${jobs.length}`;
-      if(info) info.style.display = 'block';
-      // pequena pausa para não sobrecarregar a API
-      await new Promise(r => setTimeout(r, 200));
-    } catch(e) {
-      erro++;
+  try {
+    // 1. Busca todos os eventos existentes na agenda Jobs Audiovisual
+    let eventosExistentes = [];
+    let pageToken = null;
+    do {
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events?maxResults=2500${pageToken?'&pageToken='+pageToken:''}`;
+      const r = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalToken } });
+      const d = await r.json();
+      eventosExistentes = eventosExistentes.concat(d.items || []);
+      pageToken = d.nextPageToken;
+    } while(pageToken);
+
+    if(info) info.textContent = `${eventosExistentes.length} eventos encontrados na agenda. Sincronizando...`;
+
+    // 2. Para cada job, verifica se já existe evento pelo título
+    let criados = 0, atualizados = 0, removidos = 0;
+
+    for(const job of jobs) {
+      const datas = job.datas || [job.data];
+      for(const data of datas) {
+        const titulo = `🎬 ${job.job} — ${job.produtora}`;
+        const desc   = `Valor: R$ ${job.valor.toFixed(2)}\nPagamento: ${fmtD(job.pgto)}\nNF: ${job.nf?'Sim':'Não'}\n${job.obs||''}`;
+
+        let start, end;
+        if(job.entrada && job.saida) {
+          start = { dateTime: `${data}T${job.entrada}:00`, timeZone: 'America/Sao_Paulo' };
+          end   = { dateTime: `${data}T${job.saida}:00`,   timeZone: 'America/Sao_Paulo' };
+        } else {
+          const prox = new Date(data + 'T12:00:00'); prox.setDate(prox.getDate()+1);
+          start = { date: data };
+          end   = { date: prox.toISOString().slice(0,10) };
+        }
+
+        const resource = { summary: titulo, description: desc, start, end, colorId: '11' };
+
+        // Busca evento existente com mesmo título e data
+        const existente = eventosExistentes.find(e =>
+          e.summary === titulo &&
+          (e.start?.date === data || e.start?.dateTime?.startsWith(data))
+        );
+
+        if(existente) {
+          // Atualiza evento existente
+          await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente.id}`, {
+            method: 'PUT',
+            headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify(resource)
+          });
+          atualizados++;
+          // Remove da lista para não apagar depois
+          eventosExistentes = eventosExistentes.filter(e => e.id !== existente.id);
+        } else {
+          // Cria novo evento
+          await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events`, {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify(resource)
+          });
+          criados++;
+        }
+
+        if(info) info.textContent = `Sincronizando... criados: ${criados} · atualizados: ${atualizados}`;
+        await new Promise(r => setTimeout(r, 150));
+      }
     }
-  }
 
-  if(info) info.textContent = `✓ ${ok} job(s) enviados para o Google Agenda${erro > 0 ? ` · ${erro} erro(s)` : ''}.`;
-  toast(`${ok} jobs sincronizados!`);
+    // 3. Remove eventos que sobraram na agenda (não existem mais no sistema)
+    for(const ev of eventosExistentes) {
+      if(!ev.summary?.startsWith('🎬')) continue; // só remove eventos do app
+      await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${ev.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + gcalToken }
+      });
+      removidos++;
+      await new Promise(r => setTimeout(r, 150));
+    }
+
+    const msg = `✓ ${criados} criados · ${atualizados} atualizados · ${removidos} removidos`;
+    if(info) info.textContent = msg;
+    toast('Sincronização concluída!');
+
+  } catch(e) {
+    toast('Erro na sincronização: ' + e.message, true);
+    if(info) info.textContent = 'Erro: ' + e.message;
+  }
 };
 
 // CONFIG
