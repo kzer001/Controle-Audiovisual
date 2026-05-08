@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6b1a2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Controle Audiovisual">
+<title>Controle Audiovisual</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=Instrument+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:       #1c1c1e;
+  --surface:  #242426;
+  --card:     #2a2a2d;
+  --border:   #3a3a3d;
+  --ink:      #ececec;
+  --ink2:     #8e8e93;
+  --bordo:    #9b2335;
+  --bordo-dk: #7a1a28;
+  --green:    #30a060;
+  --radius:   6px;
+  --shadow:   0 1px 4px rgba(0,0,0,0.5), 0 6px 18px rgba(0,0,0,0.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:#1c1c1e;color-scheme:dark}
+body{font-family:'Instrument Sans',sans-serif;background:#1c1c1e;color:#ececec;min-height:100vh}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:#141416;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:28px}
+.login-logo{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;letter-spacing:14px;color:#ececec}
+.login-sub{font-family:'Instrument Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#555;margin-top:-18px}
+.btn-google{display:flex;align-items:center;gap:12px;background:#2a2a2d;border:1px solid #3a3a3d;border-radius:var(--radius);color:#ececec;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:14px;font-weight:600;padding:13px 30px;transition:all .2s}
+.btn-google:hover{background:#333336;transform:translateY(-1px)}
+.login-note{font-size:11px;color:#555;font-family:'Instrument Mono',monospace;letter-spacing:1px;text-align:center;max-width:260px;line-height:1.8}
+
+/* LOADING */
+#loading-screen{position:fixed;inset:0;background:#1c1c1e;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:999}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-lbl{font-family:'Instrument Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--ink2)}
+
+/* APP */
+#app{display:none}
+
+/* OFFLINE */
+#offline-banner{display:none;background:var(--bordo);color:#fff;text-align:center;padding:7px;font-family:'Instrument Mono',monospace;font-size:11px;letter-spacing:1px}
+
+/* HEADER */
+header{background:var(--bordo);color:#fff;padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:12px}
+.logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:6px;color:#fff;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.logo-tag{font-family:'Instrument Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.45);background:rgba(255,255,255,.1);padding:3px 7px;border-radius:2px}
+nav{display:flex;gap:2px;flex-wrap:wrap}
+nav button{background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.45);cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:8px 14px;transition:all .2s;white-space:nowrap}
+nav button:hover{color:#fff}
+nav button.active{color:#fff;border-bottom-color:rgba(255,255,255,.8)}
+.header-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.sync-wrap{display:flex;align-items:center;gap:6px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);transition:background .3s}
+.sync-dot.synced{background:#5dc888}
+.sync-dot.syncing{background:#f0c040;animation:pulse 1s infinite}
+.sync-dot.error{background:#ff6060}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-lbl{font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.4)}
+.user-info{display:flex;align-items:center;gap:7px}
+.user-avatar{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.3)}
+.user-name{font-size:12px;color:rgba(255,255,255,.7)}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.25);border-radius:var(--radius);color:rgba(255,255,255,.6);cursor:pointer;font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:5px 10px;text-transform:uppercase;transition:all .15s}
+.btn-logout:hover{border-color:#fff;color:#fff}
+
+/* MAIN */
+main{max-width:1160px;margin:0 auto;padding:28px 20px}
+.page{display:none}
+.page.active{display:block}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.page-title{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+.page-sub{font-size:12px;color:var(--ink2);margin-top:4px}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.section-gap{margin-top:16px}
+.card-label{font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+label{font-family:'Instrument Mono',monospace;font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ink2)}
+input,select,textarea{background:#242426;border:1px solid #3a3a3d;border-radius:var(--radius);color:#ececec;font-family:'Instrument Sans',sans-serif;font-size:14px;padding:9px 13px;width:100%;transition:all .15s;outline:none;appearance:none;color-scheme:dark}
+input:focus,select:focus,textarea:focus{border-color:#666;background:#2e2e31}
+.divider{height:1px;background:var(--border);margin:4px 0;grid-column:1/-1}
+
+/* TOGGLE NF */
+.toggle-row{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer}
+.toggle-row input[type="checkbox"]{width:15px;height:15px;min-width:15px;cursor:pointer;accent-color:var(--bordo);appearance:auto;margin:0;padding:0;flex-shrink:0}
+.toggle-row label{cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);font-family:'Instrument Sans',sans-serif;font-weight:400;margin:0}
+
+/* MULTI DATE PICKER */
+.mdc-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.mdc-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border)}
+.mdc-nav{background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink2);padding:3px 8px;border-radius:var(--radius);transition:all .15s}
+.mdc-nav:hover{background:var(--border);color:var(--ink)}
+.mdc-month-lbl{font-family:'Instrument Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.mdc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:8px}
+.mdc-day-name{text-align:center;font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--ink2);padding:4px 0;text-transform:uppercase}
+.mdc-day{text-align:center;padding:6px 2px;font-size:12px;border-radius:3px;cursor:pointer;transition:all .1s;color:var(--ink);border:1px solid transparent}
+.mdc-day:hover{background:var(--border)}
+.mdc-day.selected{background:var(--bordo);color:#fff;border-color:var(--bordo-dk)}
+.mdc-day.empty{cursor:default}
+.mdc-day.empty:hover{background:none}
+.mdc-day.today{border-color:var(--bordo);font-weight:600}
+.mdc-tags{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;border-top:1px solid var(--border);min-height:36px}
+.mdc-tag{display:flex;align-items:center;gap:4px;background:var(--bordo);color:#fff;font-family:'Instrument Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px}
+.mdc-tag button{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;line-height:1;padding:0}
+.mdc-tag button:hover{color:#fff}
+.mdc-empty-tip{font-size:11px;color:var(--ink2);font-family:'Instrument Mono',monospace;padding:4px 2px}
+
+/* BUTTONS */
+.btn{background:var(--ink);border:none;border-radius:var(--radius);color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;padding:10px 22px;transition:all .15s;letter-spacing:.3px;white-space:nowrap}
+.btn:hover{background:#2a2a2a;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--ink)}
+.btn-outline:hover{background:#333336}
+.btn-bordo{background:var(--bordo);color:#fff}
+.btn-bordo:hover{background:var(--bordo-dk)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#268050}
+.btn-sm{padding:5px 12px;font-size:11px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.stat-card.s-ink{border-left:3px solid var(--ink)}
+.stat-card.s-bordo{border-left:3px solid var(--bordo)}
+.stat-card.s-green{border-left:3px solid var(--green)}
+.stat-card.s-gray{border-left:3px solid #aaa}
+.stat-lbl{font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink2);margin-bottom:7px}
+.stat-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--ink);line-height:1;letter-spacing:-.5px}
+.stat-sub{font-size:11px;color:var(--ink2);margin-top:4px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink2);padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+.sort-ic{margin-left:3px;opacity:.5;font-size:10px}
+td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#303033}
+.mono{font-family:'Instrument Mono',monospace;font-size:12px}
+.money{font-family:'Instrument Mono',monospace;font-size:13px;color:#4dbb7a}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:2px;font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:500}
+.b-pago{background:#0d2e1a;color:#4dbb7a;border:1px solid #1a4d2e}
+.b-pendente{background:#2e1e00;color:#cc8800;border:1px solid #4d3300}
+.b-parcial{background:#2a2000;color:#aa9900;border:1px solid #443500}
+.b-atrasado{background:#2e0a10;color:#dd4466;border:1px solid #4d1520}
+.b-nf{background:#0a1a2e;color:#4488cc;border:1px solid #1a304d}
+
+/* YEAR TABS */
+.year-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+.year-tab{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink2);cursor:pointer;font-family:'Instrument Mono',monospace;font-size:11px;letter-spacing:1px;padding:5px 13px;transition:all .15s}
+.year-tab.active,.year-tab:hover{background:#333;color:var(--ink);border-color:#555}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.filter-bar input,.filter-bar select{flex:1;min-width:120px}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-wrap{position:relative;height:210px}
+
+/* PRODUTORA CARDS */
+.prod-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:10px}
+.prod-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.prod-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.5px}
+.prod-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.ps-val{font-family:'Instrument Mono',monospace;font-size:13px;font-weight:500}
+.ps-lbl{font-family:'Instrument Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink2);margin-top:3px}
+
+/* META BAR */
+.meta-bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:10px}
+.meta-bar-fill{height:100%;background:var(--green);border-radius:2px;transition:width .6s ease}
+.meta-bar-fill.over{background:#888}
+
+/* PAYMENT ITEMS */
+.payment-list{display:flex;flex-direction:column;gap:8px}
+.payment-item{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:11px 13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+.payment-item.urgent{border-left:3px solid var(--bordo)}
+.payment-item.soon{border-left:3px solid #aaa}
+.payment-item.ok{border-left:3px solid var(--green)}
+
+/* METAS */
+.metas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.meta-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;display:flex;align-items:center;gap:10px}
+.meta-prod-name{flex:1;font-size:13px;font-weight:500}
+.meta-item input{width:110px;text-align:right;font-family:'Instrument Mono',monospace}
+
+/* GCAL */
+.gcal-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gcal-dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.gcal-dot.on{background:#5dc888}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px);padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px;width:100%;max-width:500px;animation:slideUp .22s ease;box-shadow:0 20px 60px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:18px}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--ink2)}
+.empty-icon{font-size:34px;margin-bottom:12px;opacity:.3}
+.empty p{font-size:13px;line-height:1.7}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;transform:translateY(50px);opacity:0;transition:all .25s;z-index:999;max-width:280px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .prod-stats{grid-template-columns:repeat(3,1fr)}
+  .metas-grid{grid-template-columns:1fr}
+  header{padding:0 12px;flex-wrap:wrap;height:auto;padding-top:8px;padding-bottom:8px}
+  nav button{font-size:10px;padding:6px 9px}
+  main{padding:16px 12px}
+  .page-title{font-size:24px}
+  .logo{font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<div id="offline-banner">⚠ Sem conexão — sincronizando quando voltar online</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">CA</div>
+  <div class="login-sub">Controle Audiovisual</div>
+  <button class="btn-google" onclick="loginGoogle()">
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+      <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/>
+      <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/>
+      <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/>
+    </svg>
+    Entrar com Google
+  </button>
+  <div class="login-note">Dados salvos na nuvem e sincronizados em todos os dispositivos.</div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-lbl">CARREGANDO</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<header>
+  <div class="logo">CA <span class="logo-tag">Audiovisual</span></div>
+  <nav>
+    <button class="active" onclick="showPage('novo',this)">+ Novo Job</button>
+    <button onclick="showPage('historico',this)">Histórico</button>
+    <button onclick="showPage('produtoras',this)">Produtoras</button>
+    <button onclick="showPage('financeiro',this)">Financeiro</button>
+    <button onclick="showPage('config',this)">Config</button>
+  </nav>
+  <div class="header-right">
+    <div class="sync-wrap">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span class="sync-lbl" id="sync-lbl">—</span>
+    </div>
+    <div class="user-info">
+      <img class="user-avatar" id="user-avatar" src="" alt="">
+      <span class="user-name" id="user-name"></span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<main>
+
+<!-- NOVO JOB -->
+<div id="page-novo" class="page active">
+  <div class="page-header">
+    <div><div class="page-title">Novo Job</div><div class="page-sub">Registre um novo trabalho</div></div>
+    <div class="gcal-status">
+      <div class="gcal-dot" id="gcal-dot"></div>
+      <span style="font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2)" id="gcal-lbl">Google Agenda desconectado</span>
+      <button class="btn btn-outline btn-sm" onclick="connectGCal()">Conectar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">Dados do Job</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Produtora</label>
+        <input type="text" id="f-produtora" placeholder="Ex: Produtora Alpha" list="prod-list" autocomplete="off">
+        <datalist id="prod-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Nome do Job</label>
+        <input type="text" id="f-job" placeholder="Ex: Comercial Verão 2025">
+      </div>
+      <div class="form-group full">
+        <label>Data(s) do Job — clique para selecionar um ou mais dias</label>
+        <div class="mdc-wrap">
+          <div class="mdc-header">
+            <button class="mdc-nav" onclick="mdcNav(-1)">&#8249;</button>
+            <span class="mdc-month-lbl" id="mdc-lbl"></span>
+            <button class="mdc-nav" onclick="mdcNav(1)">&#8250;</button>
+          </div>
+          <div class="mdc-grid" id="mdc-grid"></div>
+          <div class="mdc-tags" id="mdc-tags"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Horário de Entrada</label>
+        <input type="time" id="f-entrada">
+      </div>
+      <div class="form-group">
+        <label>Horário de Saída</label>
+        <input type="time" id="f-saida">
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>Valor do Job (R$)</label>
+        <input type="number" id="f-valor" placeholder="0,00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Dia do Pagamento</label>
+        <input type="date" id="f-pgto">
+      </div>
+      <div class="form-group full">
+        <div class="toggle-row" onclick="document.getElementById('f-nf').click()">
+          <input type="checkbox" id="f-nf">
+          <label for="f-nf">Emitir Nota Fiscal para este job</label>
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Observações</label>
+        <textarea id="f-obs" rows="2" placeholder="Detalhes adicionais..."></textarea>
+      </div>
+    </div>
+    <div style="margin-top:18px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="limparForm()">Limpar</button>
+      <button class="btn btn-bordo" id="btn-salvar" onclick="salvarJob()">Salvar Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTÓRICO -->
+<div id="page-historico" class="page">
+  <div class="page-header">
+    <div><div class="page-title">Histórico</div><div class="page-sub">Todos os jobs registrados</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">&#8595; CSV</button>
+      <button class="btn btn-sm" onclick="exportRelatorio()">&#8595; Relatório</button>
+    </div>
+  </div>
+  <div id="ytabs-hist" class="year-tabs"></div>
+  <div class="filter-bar">
+    <input type="text" id="busca" placeholder="Buscar job ou produtora..." oninput="renderHistorico()">
+    <select id="f-filt-status" onchange="renderHistorico()">
+      <option value="">Todos os status</option>
+      <option value="pago">Pago</option>
+      <option value="pendente">Pendente</option>
+      <option value="parcial">Parcial</option>
+    </select>
+    <select id="f-filt-prod" onchange="renderHistorico()">
+      <option value="">Todas as produtoras</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortBy('data')">Data<span class="sort-ic" data-col="data">&#8597;</span></th>
+            <th class="sortable" onclick="sortBy('produtora')">Produtora<span class="sort-ic" data-col="produtora">&#8597;</span></th>
+            <th class="sortable" onclick="sortBy('job')">Job<span class="sort-ic" data-col="job">&#8597;</span></th>
+            <th>Entrada</th><th>Saída</th><th>Horas</th>
+            <th class="sortable" onclick="sortBy('valor')">Valor<span class="sort-ic" data-col="valor">&#8597;</span></th>
+            <th class="sortable" onclick="sortBy('pgto')">Pgto<span class="sort-ic" data-col="pgto">&#8597;</span></th>
+            <th class="sortable" onclick="sortBy('status')">Status<span class="sort-ic" data-col="status">&#8597;</span></th>
+            <th>NF</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-hist"></tbody>
+      </table>
+      <div id="empty-hist" class="empty" style="display:none">
+        <div class="empty-icon">&#127916;</div>
+        <p>Nenhum job registrado.<br>Comece pela aba <strong>Novo Job</strong>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUTORAS -->
+<div id="page-produtoras" class="page">
+  <div class="page-header">
+    <div><div class="page-title">Produtoras</div><div class="page-sub">Desempenho por empresa</div></div>
+  </div>
+  <div id="ytabs-prod" class="year-tabs"></div>
+  <div id="lista-prod">
+    <div class="empty"><div class="empty-icon">&#127970;</div><p>Nenhum job ainda.</p></div>
+  </div>
+</div>
+
+<!-- FINANCEIRO -->
+<div id="page-financeiro" class="page">
+  <div class="page-header">
+    <div><div class="page-title">Financeiro</div><div class="page-sub">Dashboard e metas mensais</div></div>
+  </div>
+  <div id="ytabs-fin" class="year-tabs"></div>
+  <div class="stats-grid" id="stats-fin"></div>
+  <div class="card section-gap">
+    <div class="card-label">Pagamentos Pendentes — Mês Atual por Produtora</div>
+    <div id="pgtos-proximos" class="payment-list"></div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Meta do Mês por Produtora</div>
+    <div id="metas-display"></div>
+  </div>
+  <div class="charts-grid section-gap">
+    <div class="card"><div class="card-label">Faturamento Mensal</div><div class="chart-wrap"><canvas id="ch-mensal"></canvas></div></div>
+    <div class="card"><div class="card-label">Status de Pagamentos</div><div class="chart-wrap"><canvas id="ch-status"></canvas></div></div>
+    <div class="card"><div class="card-label">Receita por Produtora</div><div class="chart-wrap"><canvas id="ch-prod"></canvas></div></div>
+    <div class="card"><div class="card-label">Jobs por Mês</div><div class="chart-wrap"><canvas id="ch-dias"></canvas></div></div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div id="page-config" class="page">
+  <div class="page-header">
+    <div><div class="page-title">Config</div><div class="page-sub">Integrações, metas e dados</div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Google Agenda</div>
+    <p style="font-size:12px;color:var(--ink2);margin-bottom:14px;line-height:1.8">
+      Ao salvar um job, um evento será criado automaticamente na agenda <strong>Jobs Audiovisual</strong> — separada dos seus compromissos pessoais.<br>
+      Com entrada e saída preenchidos: evento com horário. Sem horário: evento de dia inteiro.
+    </p>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-bordo" onclick="connectGCal()">Conectar Google Agenda</button>
+      <div class="gcal-status">
+        <div class="gcal-dot" id="gcal-dot2"></div>
+        <span style="font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2)" id="gcal-lbl2">Desconectado</span>
+      </div>
+    </div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Metas Mensais por Produtora</div>
+    <p style="font-size:12px;color:var(--ink2);margin-bottom:14px">Valor que deseja faturar por produtora por mês.</p>
+    <div id="metas-config" class="metas-grid"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-bordo" onclick="salvarMetas()">Salvar Metas</button>
+    </div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Conta</div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <img id="cfg-avatar" src="" style="width:46px;height:46px;border-radius:50%;border:1px solid var(--border)">
+      <div>
+        <div id="cfg-name" style="font-weight:600;font-size:14px"></div>
+        <div id="cfg-email" style="font-size:12px;color:var(--ink2);margin-top:2px"></div>
+      </div>
+      <button class="btn btn-outline" style="margin-left:auto" onclick="logout()">Sair da conta</button>
+    </div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Dados</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="exportBackup()">&#8595; Backup JSON</button>
+      <button class="btn btn-outline" onclick="document.getElementById('imp-file').click()">&#8593; Restaurar</button>
+      <button class="btn btn-outline" style="color:var(--bordo);border-color:var(--bordo)" onclick="limparTudo()">Limpar tudo</button>
+    </div>
+    <input type="file" id="imp-file" accept=".json" style="display:none" onchange="lerBackup(event)">
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">Editar Job</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Produtora</label><input type="text" id="e-produtora"></div>
+      <div class="form-group"><label>Nome do Job</label><input type="text" id="e-job"></div>
+      <div class="form-group"><label>Data Principal</label><input type="date" id="e-data"></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="number" id="e-valor" step="0.01"></div>
+      <div class="form-group"><label>Entrada</label><input type="time" id="e-entrada"></div>
+      <div class="form-group"><label>Saída</label><input type="time" id="e-saida"></div>
+      <div class="form-group"><label>Dia Pgto</label><input type="date" id="e-pgto"></div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="e-status">
+          <option value="pendente">Pendente</option>
+          <option value="pago">Pago</option>
+          <option value="parcial">Parcial</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <div class="toggle-row" onclick="document.getElementById('e-nf').click()">
+          <input type="checkbox" id="e-nf">
+          <label for="e-nf">Emitir Nota Fiscal</label>
+        </div>
+      </div>
+      <div class="form-group full"><label>Obs</label><textarea id="e-obs" rows="2"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-bordo" onclick="salvarEdicao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, setDoc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const cfg = {
+  apiKey:"AIzaSyDJTWQKBZNLKp5UZVvpzCoSmG3-1MEPAFU",
+  authDomain:"controle-audiovisual.firebaseapp.com",
+  projectId:"controle-audiovisual",
+  storageBucket:"controle-audiovisual.firebasestorage.app",
+  messagingSenderId:"400845603597",
+  appId:"1:400845603597:web:f1f54e38646280acd0a644"
+};
+const app      = initializeApp(cfg);
+const auth     = getAuth(app);
+const db       = getFirestore(app);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({client_id:'400845603597-l5984ql1sssjietg9f0032su62hedu7v.apps.googleusercontent.com'});
+
+// STATE
+let jobs=[], metas={}, user=null, unsub=null, editId=null;
+let ano={hist:new Date().getFullYear(),prod:new Date().getFullYear(),fin:new Date().getFullYear()};
+let charts={}, sortCol='data', sortDir=-1;
+let gcalOk=false, gcalToken=null, calId=null;
+
+// MULTI DATE PICKER
+let mdcDatas=[], mdcRef=new Date();
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_S=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function mdcRender(){
+  const y=mdcRef.getFullYear(), m=mdcRef.getMonth();
+  document.getElementById('mdc-lbl').textContent=MESES[m]+' '+y;
+  const hoje=new Date().toISOString().slice(0,10);
+  const first=new Date(y,m,1).getDay(), total=new Date(y,m+1,0).getDate();
+  let h=DIAS_S.map(d=>'<div class="mdc-day-name">'+d+'</div>').join('');
+  for(let i=0;i<first;i++) h+='<div class="mdc-day empty"></div>';
+  for(let d=1;d<=total;d++){
+    const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const sel=mdcDatas.includes(iso)?'selected':'';
+    const tod=iso===hoje?'today':'';
+    h+='<div class="mdc-day '+sel+' '+tod+'" onclick="mdcToggle(\''+iso+'\')">'+d+'</div>';
+  }
+  document.getElementById('mdc-grid').innerHTML=h;
+  const tg=document.getElementById('mdc-tags');
+  tg.innerHTML=mdcDatas.length
+    ?mdcDatas.sort().map(d=>'<div class="mdc-tag">'+fmtD(d)+'<button onclick="mdcRm(\''+d+'\')">&#215;</button></div>').join('')
+    :'<span class="mdc-empty-tip">Nenhum dia selecionado</span>';
+}
+window.mdcNav=(d)=>{mdcRef.setMonth(mdcRef.getMonth()+d);mdcRender();};
+window.mdcToggle=(iso)=>{const i=mdcDatas.indexOf(iso);i>=0?mdcDatas.splice(i,1):mdcDatas.push(iso);mdcRender();};
+window.mdcRm=(iso)=>{mdcDatas=mdcDatas.filter(d=>d!==iso);mdcRender();};
+
+// AUTH
+window.loginGoogle=async()=>{try{await signInWithPopup(auth,provider);}catch(e){toast('Erro: '+e.message,true);}};
+window.logout=async()=>{if(unsub)unsub();await signOut(auth);};
+
+onAuthStateChanged(auth,async u=>{
+  if(u){
+    user=u;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('loading-screen').style.display='flex';
+    document.getElementById('user-name').textContent=u.displayName?.split(' ')[0]||'';
+    document.getElementById('user-avatar').src=u.photoURL||'';
+    document.getElementById('cfg-avatar').src=u.photoURL||'';
+    document.getElementById('cfg-name').textContent=u.displayName||'';
+    document.getElementById('cfg-email').textContent=u.email||'';
+    await loadMetas();
+    startListener();
+  } else {
+    user=null;
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('app').style.display='none';
+    jobs=[];
+  }
+});
+
+// FIRESTORE
+function startListener(){
+  if(unsub)unsub();
+  const q=query(collection(db,'users',user.uid,'jobs'),orderBy('criadoEm','desc'));
+  unsub=onSnapshot(q,
+    snap=>{
+      jobs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      setSyncSt('synced'); updateDL();
+      const pg=document.querySelector('.page.active')?.id?.replace('page-','');
+      if(pg==='historico')renderHistorico();
+      if(pg==='produtoras')renderProdutoras();
+      if(pg==='financeiro')renderFinanceiro();
+      document.getElementById('loading-screen').style.display='none';
+      document.getElementById('app').style.display='block';
+    },
+    err=>{setSyncSt('error');toast('Erro sync: '+err.message,true);}
+  );
+}
+
+async function loadMetas(){
+  try{const s=await getDoc(doc(db,'users',user.uid,'config','metas'));metas=s.exists()?s.data():{};}
+  catch(e){metas={};}
+}
+
+window.salvarMetas=async()=>{
+  document.querySelectorAll('.meta-input').forEach(i=>{
+    const p=i.dataset.prod,v=parseFloat(i.value)||0;
+    v>0?metas[p]=v:delete metas[p];
+  });
+  try{await setDoc(doc(db,'users',user.uid,'config','metas'),metas);toast('Metas salvas!');}
+  catch(e){toast('Erro.',true);}
+};
+
+// SALVAR JOB
+window.salvarJob=async()=>{
+  const prod=document.getElementById('f-produtora').value.trim();
+  const job=document.getElementById('f-job').value.trim();
+  const val=parseFloat(document.getElementById('f-valor').value)||0;
+  if(!prod||!job||!val||!mdcDatas.length){toast('Preencha produtora, job, valor e selecione ao menos 1 dia.',true);return;}
+  const btn=document.getElementById('btn-salvar');
+  btn.disabled=true; setSyncSt('syncing');
+  const ent=document.getElementById('f-entrada').value;
+  const sai=document.getElementById('f-saida').value;
+  let hrs=0;
+  if(ent&&sai){const[eh,em]=ent.split(':').map(Number),[sh,sm]=sai.split(':').map(Number);hrs=Math.max(0,((sh*60+sm)-(eh*60+em))/60);}
+  const obj={
+    produtora:prod,job,
+    datas:[...mdcDatas].sort(),data:[...mdcDatas].sort()[0],
+    entrada:ent,saida:sai,horas:+hrs.toFixed(1),
+    valor:val,rph:hrs>0?+(val/hrs).toFixed(2):0,
+    pgto:document.getElementById('f-pgto').value,
+    status:'pendente',
+    nf:document.getElementById('f-nf').checked,
+    obs:document.getElementById('f-obs').value,
+    criadoEm:Date.now()
+  };
+  try{
+    await addDoc(collection(db,'users',user.uid,'jobs'),obj);
+    if(gcalOk)await criarEventos(obj);
+    limparForm();
+    toast('Job salvo'+(gcalOk?' e adicionado à Agenda!':'!'));
+  }catch(e){toast('Erro: '+e.message,true);setSyncSt('error');}
+  btn.disabled=false;
+};
+
+// EDITAR
+window.abrirEditar=(id)=>{
+  editId=id;const j=jobs.find(x=>x.id===id);if(!j)return;
+  document.getElementById('e-produtora').value=j.produtora;
+  document.getElementById('e-job').value=j.job;
+  document.getElementById('e-data').value=j.data;
+  document.getElementById('e-valor').value=j.valor;
+  document.getElementById('e-entrada').value=j.entrada||'';
+  document.getElementById('e-saida').value=j.saida||'';
+  document.getElementById('e-pgto').value=j.pgto||'';
+  document.getElementById('e-status').value=j.status;
+  document.getElementById('e-nf').checked=j.nf;
+  document.getElementById('e-obs').value=j.obs||'';
+  document.getElementById('modal-edit').classList.add('open');
+};
+
+window.salvarEdicao=async()=>{
+  const ent=document.getElementById('e-entrada').value;
+  const sai=document.getElementById('e-saida').value;
+  const val=parseFloat(document.getElementById('e-valor').value)||0;
+  let hrs=0;
+  if(ent&&sai){const[eh,em]=ent.split(':').map(Number),[sh,sm]=sai.split(':').map(Number);hrs=Math.max(0,((sh*60+sm)-(eh*60+em))/60);}
+  const upd={
+    produtora:document.getElementById('e-produtora').value,
+    job:document.getElementById('e-job').value,
+    data:document.getElementById('e-data').value,
+    valor:val,entrada:ent,saida:sai,horas:+hrs.toFixed(1),
+    rph:hrs>0?+(val/hrs).toFixed(2):0,
+    pgto:document.getElementById('e-pgto').value,
+    status:document.getElementById('e-status').value,
+    nf:document.getElementById('e-nf').checked,
+    obs:document.getElementById('e-obs').value
+  };
+  try{setSyncSt('syncing');await updateDoc(doc(db,'users',user.uid,'jobs',editId),upd);fecharModal();toast('Job atualizado!');}
+  catch(e){toast('Erro.',true);}
+};
+
+window.deletar=async(id)=>{
+  if(!confirm('Excluir este job?'))return;
+  try{setSyncSt('syncing');await deleteDoc(doc(db,'users',user.uid,'jobs',id));toast('Job removido.');}
+  catch(e){toast('Erro.',true);}
+};
+
+window.darBaixaProd=async(prod)=>{
+  const mes=new Date().toISOString().slice(0,7);
+  const pend=jobs.filter(j=>j.produtora===prod&&j.data?.startsWith(mes)&&j.status!=='pago');
+  if(!pend.length){toast('Nenhum pendente.',true);return;}
+  if(!confirm('Marcar '+pend.length+' job(s) de "'+prod+'" como pagos?'))return;
+  setSyncSt('syncing');
+  for(const j of pend)await updateDoc(doc(db,'users',user.uid,'jobs',j.id),{status:'pago'});
+  toast(pend.length+' job(s) marcados como pagos!');
+};
+
+// HISTÓRICO
+window.sortBy=(col)=>{
+  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=-1;}
+  document.querySelectorAll('.sort-ic').forEach(s=>s.innerHTML='&#8597;');
+  const ic=document.querySelector('.sort-ic[data-col="'+col+'"]');
+  if(ic)ic.innerHTML=sortDir===1?'&#8593;':'&#8595;';
+  renderHistorico();
+};
+
+window.renderHistorico=()=>{
+  const busca=(document.getElementById('busca').value||'').toLowerCase();
+  const fSt=document.getElementById('f-filt-status').value;
+  const fProd=document.getElementById('f-filt-prod').value;
+  const prods=[...new Set(jobs.map(j=>j.produtora))];
+  const sel=document.getElementById('f-filt-prod'),cur=sel.value;
+  sel.innerHTML='<option value="">Todas as produtoras</option>'+prods.map(p=>'<option value="'+p+'"'+(p===cur?' selected':'')+'>'+p+'</option>').join('');
+  const hoje=new Date().toISOString().slice(0,10);
+  let lista=jobsAno('hist').filter(j=>{
+    const b=!busca||j.job.toLowerCase().includes(busca)||j.produtora.toLowerCase().includes(busca);
+    const s=!fSt||j.status===fSt;
+    const p=!fProd||j.produtora===fProd;
+    return b&&s&&p;
+  }).sort((a,b)=>{
+    if(sortCol==='valor')return(a.valor-b.valor)*sortDir;
+    return(a[sortCol]||'').toString().localeCompare((b[sortCol]||'').toString())*sortDir;
+  });
+  const tbody=document.getElementById('tbody-hist');
+  const empty=document.getElementById('empty-hist');
+  if(!lista.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const badge=j=>{
+    if(j.status!=='pago'&&j.pgto&&j.pgto<hoje)return'<span class="badge b-atrasado">Atrasado</span>';
+    return{pago:'<span class="badge b-pago">Pago</span>',pendente:'<span class="badge b-pendente">Pendente</span>',parcial:'<span class="badge b-parcial">Parcial</span>'}[j.status]||'';
+  };
+  tbody.innerHTML=lista.map(j=>'<tr>'
+    +'<td class="mono">'+(j.datas||[j.data]).map(fmtD).join('<br>')+'</td>'
+    +'<td><strong>'+j.produtora+'</strong></td>'
+    +'<td>'+j.job+'</td>'
+    +'<td class="mono">'+(j.entrada||'—')+'</td>'
+    +'<td class="mono">'+(j.saida||'—')+'</td>'
+    +'<td class="mono">'+(j.horas?j.horas+'h':'—')+'</td>'
+    +'<td class="money">R$ '+j.valor.toFixed(2).replace('.',',')+'</td>'
+    +'<td class="mono">'+fmtD(j.pgto)+'</td>'
+    +'<td>'+badge(j)+'</td>'
+    +'<td>'+(j.nf?'<span class="badge b-nf">NF</span>':'—')+'</td>'
+    +'<td><div style="display:flex;gap:4px">'
+    +'<button class="btn btn-outline btn-sm" onclick="abrirEditar(\''+j.id+'\')">&#9998;</button>'
+    +'<button class="btn btn-bordo btn-sm" onclick="deletar(\''+j.id+'\')">&#215;</button>'
+    +'</div></td></tr>'
+  ).join('');
+};
+
+// PRODUTORAS
+window.renderProdutoras=()=>{
+  const lista=jobsAno('prod');
+  const mp={};
+  lista.forEach(j=>{
+    if(!mp[j.produtora])mp[j.produtora]={total:0,pago:0,pend:0,dias:0,horas:0};
+    const p=mp[j.produtora];
+    p.total+=j.valor;p.dias+=(j.datas?.length||1);p.horas+=j.horas||0;
+    j.status==='pago'?p.pago+=j.valor:p.pend+=j.valor;
+  });
+  const el=document.getElementById('lista-prod');
+  if(!Object.keys(mp).length){el.innerHTML='<div class="empty"><div class="empty-icon">&#127970;</div><p>Nenhum job neste ano.</p></div>';return;}
+  el.innerHTML=Object.entries(mp).sort((a,b)=>b[1].total-a[1].total).map(([nome,p])=>{
+    const meta=metas[nome]||0,pct=meta>0?Math.min((p.total/meta)*100,100):0,over=meta>0&&p.total>=meta;
+    const rph=p.horas>0?'R$'+(p.total/p.horas).toFixed(0)+'/h':'—';
+    return '<div class="prod-card">'
+      +'<div class="prod-header"><div class="prod-name">'+nome+'</div>'
+      +(meta>0?'<span class="badge '+(over?'b-pago':'b-pendente')+'">'+(over?'&#10003; Meta atingida':'Em progresso')+'</span>':'')
+      +'</div>'
+      +'<div class="prod-stats">'
+      +'<div><div class="ps-val">R$'+p.total.toFixed(0)+'</div><div class="ps-lbl">Faturado</div></div>'
+      +'<div><div class="ps-val" style="color:var(--green)">R$'+p.pago.toFixed(0)+'</div><div class="ps-lbl">Recebido</div></div>'
+      +'<div><div class="ps-val" style="color:var(--bordo)">R$'+p.pend.toFixed(0)+'</div><div class="ps-lbl">Pendente</div></div>'
+      +'<div><div class="ps-val">'+p.dias+'</div><div class="ps-lbl">Dias</div></div>'
+      +'<div><div class="ps-val">'+rph+'</div><div class="ps-lbl">R$/Hora</div></div>'
+      +'</div>'
+      +(meta>0?'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-family:\'Instrument Mono\',monospace;font-size:10px;color:var(--ink2);margin-bottom:4px"><span>'+pct.toFixed(0)+'% da meta (R$'+meta.toLocaleString('pt-BR')+')</span><span>'+(over?'&#10003; Atingido':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR'))+'</span></div><div class="meta-bar-track"><div class="meta-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div></div>':'')
+      +'</div>';
+  }).join('');
+};
+
+// FINANCEIRO
+window.renderFinanceiro=()=>{
+  const lista=jobsAno('fin');
+  const total=lista.reduce((s,j)=>s+j.valor,0);
+  const pago=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const pend=lista.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  const horas=lista.reduce((s,j)=>s+(j.horas||0),0);
+  const ticket=lista.length?total/lista.length:0;
+  document.getElementById('stats-fin').innerHTML=
+    '<div class="stat-card s-ink"><div class="stat-lbl">Faturamento '+ano.fin+'</div><div class="stat-val">R$'+total.toFixed(0)+'</div><div class="stat-sub">'+lista.length+' jobs &middot; '+horas.toFixed(0)+'h</div></div>'
+    +'<div class="stat-card s-green"><div class="stat-lbl">Recebido</div><div class="stat-val">R$'+pago.toFixed(0)+'</div><div class="stat-sub">'+(total>0?((pago/total)*100).toFixed(0):0)+'% do total</div></div>'
+    +'<div class="stat-card s-bordo"><div class="stat-lbl">A Receber</div><div class="stat-val">R$'+pend.toFixed(0)+'</div><div class="stat-sub">pendente / parcial</div></div>'
+    +'<div class="stat-card s-gray"><div class="stat-lbl">Ticket M&eacute;dio</div><div class="stat-val">R$'+ticket.toFixed(0)+'</div><div class="stat-sub">por job</div></div>';
+
+  const mes=new Date().toISOString().slice(0,7);
+  const jMes=jobs.filter(j=>j.data?.startsWith(mes)&&j.status!=='pago');
+  const porProd={};
+  jMes.forEach(j=>{porProd[j.produtora]=(porProd[j.produtora]||0)+j.valor;});
+  const pgEl=document.getElementById('pgtos-proximos');
+  if(!Object.keys(porProd).length){
+    pgEl.innerHTML='<div class="empty" style="padding:14px"><p>Nenhum pagamento pendente este m&ecirc;s.</p></div>';
+  } else {
+    pgEl.innerHTML=Object.entries(porProd).sort((a,b)=>b[1]-a[1]).map(([prod,val])=>{
+      const prox=jobs.filter(j=>j.produtora===prod&&j.pgto&&j.status!=='pago').sort((a,b)=>a.pgto.localeCompare(b.pgto))[0];
+      const diff=prox?Math.ceil((new Date(prox.pgto+'T00:00:00')-new Date())/86400000):null;
+      const cls=diff===null?'ok':diff<0?'urgent':diff<=5?'soon':'ok';
+      const lbl=diff===null?'—':diff<0?Math.abs(diff)+'d atrasado':diff===0?'Hoje':'em '+diff+'d';
+      return '<div class="payment-item '+cls+'">'
+        +'<div><strong>'+prod+'</strong><div style="font-size:11px;color:var(--ink2);margin-top:2px">'+(prox?fmtD(prox.pgto):'')+' &middot; '+lbl+'</div></div>'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+        +'<div style="text-align:right"><div class="money">R$ '+val.toFixed(2).replace('.',',')+'</div><div style="font-size:10px;color:var(--ink2)">pendente no m&ecirc;s</div></div>'
+        +'<button class="btn btn-outline btn-sm" onclick="darBaixaProd(\''+prod+'\')">&#10003; Baixa</button>'
+        +'</div></div>';
+    }).join('');
+  }
+
+  const prodsComMeta=Object.keys(metas);
+  const metasEl=document.getElementById('metas-display');
+  if(!prodsComMeta.length){metasEl.innerHTML='<p style="font-size:12px;color:var(--ink2)">Configure as metas em <strong>Config</strong>.</p>';}
+  else{
+    const fatMes=p=>jobs.filter(j=>j.data?.startsWith(mes)&&j.produtora===p).reduce((s,j)=>s+j.valor,0);
+    metasEl.innerHTML='<div class="metas-grid">'+prodsComMeta.map(p=>{
+      const fat=fatMes(p),meta=metas[p]||0,pct=meta>0?Math.min((fat/meta)*100,100):0,over=fat>=meta;
+      return '<div class="meta-item"><div style="flex:1"><div class="meta-prod-name">'+p+'</div>'
+        +'<div style="font-size:11px;color:var(--ink2);margin-top:2px">R$'+fat.toFixed(0)+' / R$'+meta.toFixed(0)+'</div>'
+        +'<div class="meta-bar-track" style="margin-top:8px"><div class="meta-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div></div>'
+        +'<div style="min-width:48px;text-align:right"><div style="font-family:\'Instrument Mono\',monospace;font-size:13px;color:'+(over?'var(--green)':'var(--bordo)')+'">'+pct.toFixed(0)+'%</div>'
+        +'<div style="font-size:10px;color:var(--ink2);margin-top:2px">'+(over?'&#10003;':'-R$'+(meta-fat).toFixed(0))+'</div></div></div>';
+    }).join('')+'</div>';
+  }
+  buildCharts(lista);
+};
+
+// CHARTS
+function buildCharts(lista){
+  const MESES_S=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mensal={},diasM={},prodM={};
+  lista.forEach(j=>{
+    if(!j.data)return;
+    const m=j.data.slice(0,7);
+    mensal[m]=(mensal[m]||0)+j.valor;
+    diasM[m]=(diasM[m]||0)+1;
+    prodM[j.produtora]=(prodM[j.produtora]||0)+j.valor;
+  });
+  const meses=Object.keys(mensal).sort();
+  const lbl=m=>MESES_S[parseInt(m.split('-')[1])-1];
+  const base={
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',titleColor:'#f0f0f0',bodyColor:'#888',borderColor:'#333',borderWidth:1}},
+    scales:{
+      x:{ticks:{color:'#555',font:{family:'Instrument Mono',size:9}},grid:{display:false},border:{display:false}},
+      y:{ticks:{color:'#555',font:{family:'Instrument Mono',size:9}},grid:{color:'#222'},border:{display:false}}
+    }
+  };
+  drawChart('ch-mensal','bar',meses.map(lbl),[{data:meses.map(m=>mensal[m]),backgroundColor:'#8b2236',borderRadius:2,barThickness:16}],base);
+  const p1=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const p2=lista.filter(j=>j.status==='pendente').reduce((s,j)=>s+j.valor,0);
+  const p3=lista.filter(j=>j.status==='parcial').reduce((s,j)=>s+j.valor,0);
+  drawChart('ch-status','doughnut',['Pago','Pendente','Parcial'],[{data:[p1,p2,p3],backgroundColor:['#2d8a56','#cc8800','#8b2236'],borderWidth:0,hoverOffset:3}],
+    {...base,plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#888',font:{family:'Instrument Mono',size:10},boxWidth:10,padding:14}}},cutout:'65%',scales:undefined});
+  const CORES=['#8b2236','#2d8a56','#4488cc','#cc8800','#aa66cc','#555'];
+  const pKeys=Object.keys(prodM).sort((a,b)=>prodM[b]-prodM[a]).slice(0,6);
+  drawChart('ch-prod','bar',pKeys,[{data:pKeys.map(p=>prodM[p]),backgroundColor:pKeys.map((_,i)=>CORES[i%CORES.length]),borderRadius:2,barThickness:16}],base);
+  drawChart('ch-dias','bar',meses.map(lbl),[{data:meses.map(m=>diasM[m]||0),backgroundColor:'#444',borderRadius:2,barThickness:16}],base);
+}
+function drawChart(id,type,labels,datasets,options){
+  if(charts[id])charts[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  charts[id]=new Chart(ctx.getContext('2d'),{type,data:{labels,datasets},options:options||{}});
+}
+
+// GOOGLE CALENDAR — Google Identity Services (token model)
+const GCAL_CLIENT_ID = '400845603597-l6jb5c5uaf9q7inrst706b3hg2cq7rnb.apps.googleusercontent.com';
+const GCAL_SCOPE     = 'https://www.googleapis.com/auth/calendar';
+let gcalClient       = null;
+
+window.connectGCal = () => {
+  if(typeof google === 'undefined' || !google?.accounts?.oauth2) {
+    const s = document.createElement('script');
+    s.src   = 'https://accounts.google.com/gsi/client';
+    s.onload = () => _initGcalClient();
+    document.head.appendChild(s);
+  } else {
+    _initGcalClient();
+  }
+};
+
+function _initGcalClient() {
+  gcalClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope:     GCAL_SCOPE,
+    prompt:    '',
+    callback:  async (resp) => {
+      if(resp.error) { toast('Erro Google Agenda: ' + resp.error, true); return; }
+      gcalToken = resp.access_token;
+      gcalOk    = true;
+      setGCalUI(true);
+      await garantirAgenda();
+      toast('Google Agenda conectado!');
+    }
+  });
+  gcalClient.requestAccessToken();
+}
+
+async function garantirAgenda() {
+  const r  = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',
+    { headers: { Authorization: 'Bearer ' + gcalToken } });
+  const d  = await r.json();
+  const ex = d.items?.find(c => c.summary === 'Jobs Audiovisual');
+  if(ex) { calId = ex.id; return; }
+  const cr = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+    method:  'POST',
+    headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ summary: 'Jobs Audiovisual', timeZone: 'America/Sao_Paulo' })
+  });
+  const cd = await cr.json();
+  calId    = cd.id;
+}
+
+async function criarEventos(job) {
+  if(!gcalOk || !calId || !gcalToken) return;
+  for(const data of (job.datas || [job.data])) {
+    let start, end;
+    if(job.entrada && job.saida) {
+      start = { dateTime: `${data}T${job.entrada}:00`, timeZone: 'America/Sao_Paulo' };
+      end   = { dateTime: `${data}T${job.saida}:00`,   timeZone: 'America/Sao_Paulo' };
+    } else {
+      const prox = new Date(data + 'T12:00:00');
+      prox.setDate(prox.getDate() + 1);
+      start = { date: data };
+      end   = { date: prox.toISOString().slice(0, 10) };
+    }
+    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events`, {
+      method:  'POST',
+      headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary:     `🎬 ${job.job} — ${job.produtora}`,
+        description: `Valor: R$ ${job.valor.toFixed(2)}\nPagamento: ${fmtD(job.pgto)}\nNF: ${job.nf ? 'Sim' : 'Não'}\n${job.obs || ''}`,
+        start, end, colorId: '11'
+      })
+    });
+  }
+}
+
+function setGCalUI(on) {
+  ['gcal-dot','gcal-dot2'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.className = 'gcal-dot' + (on ? ' on' : '');
+  });
+  ['gcal-lbl','gcal-lbl2'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.textContent = on ? 'Google Agenda conectado' : 'Desconectado';
+  });
+}
+
+// CONFIG
+window.renderConfigMetas=()=>{
+  const prods=[...new Set(jobs.map(j=>j.produtora))];
+  const el=document.getElementById('metas-config');
+  if(!prods.length){el.innerHTML='<p style="font-size:12px;color:var(--ink2)">Registre jobs primeiro.</p>';return;}
+  el.innerHTML=prods.map(p=>'<div class="meta-item"><div class="meta-prod-name">'+p+'</div><div style="display:flex;align-items:center;gap:5px"><span style="font-family:\'Instrument Mono\',monospace;font-size:12px;color:var(--ink2)">R$</span><input type="number" class="meta-input" data-prod="'+p+'" value="'+(metas[p]||'')+'" placeholder="0,00" min="0" step="100"></div></div>').join('');
+};
+
+// EXPORT
+window.exportCSV=()=>{
+  if(!jobs.length){toast('Nenhum job.',true);return;}
+  const h=['Datas','Produtora','Job','Entrada','Saida','Horas','Valor','Pgto','Status','NF'];
+  const rows=jobs.map(j=>[(j.datas||[j.data]).join(';'),j.produtora,j.job,j.entrada||'',j.saida||'',j.horas||0,j.valor.toFixed(2),j.pgto||'',j.status,j.nf?'Sim':'Nao']);
+  dl('ca_jobs.csv',[h,...rows].map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n'),'text/csv');
+  toast('CSV exportado!');
+};
+window.exportRelatorio=()=>{
+  if(!jobs.length){toast('Nenhum job.',true);return;}
+  const total=jobs.reduce((s,j)=>s+j.valor,0);
+  const pago=jobs.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatorio CA</title><style>body{font-family:Helvetica,sans-serif;max-width:880px;margin:36px auto;color:#111;padding:0 18px}h1{font-size:26px;margin-bottom:4px}.sub{color:#777;font-size:12px;margin-bottom:22px}.res{display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap}.r{background:#fff;border:1px solid #ddd;padding:12px 16px;flex:1;min-width:120px}.rl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:5px}.rv{font-size:19px;font-weight:700}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#111;color:#fff;padding:8px 11px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;text-align:left}td{padding:9px 11px;border-bottom:1px solid #eee}tr:last-child td{border-bottom:none}</style></head><body>'
+    +'<h1>Controle Audiovisual</h1><p class="sub">Gerado em '+new Date().toLocaleDateString('pt-BR')+' &middot; '+jobs.length+' jobs</p>'
+    +'<div class="res"><div class="r"><div class="rl">Faturamento</div><div class="rv">R$ '+total.toFixed(2).replace('.',',')+'</div></div><div class="r"><div class="rl">Recebido</div><div class="rv" style="color:#1a5c3a">R$ '+pago.toFixed(2).replace('.',',')+'</div></div><div class="r"><div class="rl">A Receber</div><div class="rv" style="color:#6b1a2a">R$ '+(total-pago).toFixed(2).replace('.',',')+'</div></div><div class="r"><div class="rl">Jobs</div><div class="rv">'+jobs.length+'</div></div></div>'
+    +'<table><thead><tr><th>Data</th><th>Produtora</th><th>Job</th><th>Valor</th><th>Pgto</th><th>Status</th><th>NF</th></tr></thead><tbody>'
+    +jobs.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(j=>'<tr><td>'+(j.datas||[j.data]).map(fmtD).join(', ')+'</td><td><strong>'+j.produtora+'</strong></td><td>'+j.job+'</td><td><strong>R$ '+j.valor.toFixed(2).replace('.',',')+'</strong></td><td>'+fmtD(j.pgto)+'</td><td>'+j.status+'</td><td>'+(j.nf?'&#10003;':'—')+'</td></tr>').join('')
+    +'</tbody></table></body></html>';
+  dl('relatorio_ca.html',html,'text/html');toast('Relatorio gerado!');
+};
+window.exportBackup=()=>{dl('backup_ca.json',JSON.stringify({jobs,metas},null,2),'application/json');toast('Backup exportado!');};
+window.lerBackup=(e)=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{const data=JSON.parse(ev.target.result);if(data.jobs&&Array.isArray(data.jobs)){setSyncSt('syncing');for(const j of data.jobs){const{id,...rest}=j;await addDoc(collection(db,'users',user.uid,'jobs'),{...rest,criadoEm:rest.criadoEm||Date.now()});}toast(data.jobs.length+' jobs importados!');}}
+    catch(e){toast('Arquivo invalido.',true);}
+  };r.readAsText(f);
+};
+window.limparTudo=async()=>{
+  if(!confirm('Apagar TODOS os dados?\nEsta ação não pode ser desfeita.'))return;
+  try{setSyncSt('syncing');const snap=await new Promise(res=>onSnapshot(query(collection(db,'users',user.uid,'jobs')),res));for(const d of snap.docs)await deleteDoc(d.ref);toast('Dados apagados.');}
+  catch(e){toast('Erro.',true);}
+};
+
+// NAV
+window.showPage=(name,btn)=>{
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='historico'){buildYearTabs('hist');renderHistorico();}
+  if(name==='produtoras'){buildYearTabs('prod');renderProdutoras();}
+  if(name==='financeiro'){buildYearTabs('fin');renderFinanceiro();}
+  if(name==='config')renderConfigMetas();
+};
+
+// ANOS
+function getAnos(){const a=[...new Set(jobs.map(j=>j.data?j.data.slice(0,4):null).filter(Boolean))];if(!a.length)a.push(String(new Date().getFullYear()));return a.sort().reverse();}
+function buildYearTabs(pg){const el=document.getElementById('ytabs-'+pg);if(!el)return;el.innerHTML=getAnos().map(a=>'<button class="year-tab'+(a==ano[pg]?' active':'')+'" onclick="setAno(\''+pg+'\','+a+',this)">'+a+'</button>').join('');}
+window.setAno=(pg,a,btn)=>{ano[pg]=a;document.querySelectorAll('#ytabs-'+pg+' .year-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(pg==='hist')renderHistorico();if(pg==='prod')renderProdutoras();if(pg==='fin')renderFinanceiro();};
+function jobsAno(pg){return jobs.filter(j=>j.data?.startsWith(String(ano[pg])));}
+
+// UTILS
+window.limparForm=()=>{['f-produtora','f-job','f-entrada','f-saida','f-obs'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-valor').value='';document.getElementById('f-pgto').value='';document.getElementById('f-nf').checked=false;mdcDatas=[];mdcRender();};
+window.fecharModal=()=>document.getElementById('modal-edit').classList.remove('open');
+function updateDL(){const prods=[...new Set(jobs.map(j=>j.produtora))];document.getElementById('prod-list').innerHTML=prods.map(p=>'<option value="'+p+'">').join('');}
+function fmtD(d){return d?d.split('-').reverse().join('/'):'—';}
+function setSyncSt(s){const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-lbl');const m={synced:['synced','Sync'],syncing:['syncing','Salvando...'],error:['error','Erro']};const[cls,txt]=m[s]||['','—'];dot.className='sync-dot'+(cls?' '+cls:'');lbl.textContent=txt;}
+function dl(fn,c,t){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:t}));a.download=fn;a.click();}
+window.toast=(msg,err=false)=>{const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'var(--bordo)':'var(--ink)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);};
+window.addEventListener('online',()=>{document.getElementById('offline-banner').style.display='none';setSyncSt('synced');});
+window.addEventListener('offline',()=>{document.getElementById('offline-banner').style.display='block';setSyncSt('error');});
+
+// INIT
+mdcRender();
+</script>
+</body>
+</html>
