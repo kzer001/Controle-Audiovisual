@@ -12,15 +12,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #f2ede6;
-  --surface: #ebe6de;
+  --bg: #f5f5f5;
+  --surface: #ebebeb;
   --card: #ffffff;
-  --border: #ddd8cf;
-  --ink: #1a1712;
-  --ink2: #6b6560;
-  --accent: #c8401a;
-  --accent2: #1a5c3a;
-  --gold: #b8860b;
+  --border: #d4d4d4;
+  --ink: #111111;
+  --ink2: #777777;
+  --accent: #6b1a2a;
+  --accent2: #4a4a4a;
+  --gold: #999999;
+  --bordo: #6b1a2a;
+  --bordo-dark: #4a1020;
   --radius: 4px;
   --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
 }
@@ -123,8 +125,8 @@ body {
 
 /* HEADER */
 header {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--bordo);
+  color: #fff;
   padding: 0 32px;
   display: flex;
   align-items: center;
@@ -140,7 +142,7 @@ header {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: 8px;
-  color: var(--bg);
+  color: #fff;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -150,8 +152,8 @@ header {
   font-family: 'Instrument Mono', monospace;
   font-size: 9px;
   letter-spacing: 2px;
-  color: #555;
-  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.1);
   padding: 3px 8px;
   border-radius: 2px;
 }
@@ -162,26 +164,18 @@ header {
   gap: 16px;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--ink2);
-}
-
 .user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1px solid #333;
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 .btn-logout {
   background: none;
-  border: 1px solid #333;
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: var(--radius);
-  color: var(--ink2);
+  color: rgba(255,255,255,0.7);
   cursor: pointer;
   font-family: 'Instrument Mono', monospace;
   font-size: 9px;
@@ -191,7 +185,25 @@ header {
   transition: all 0.15s;
 }
 
-.btn-logout:hover { border-color: var(--bg); color: var(--bg); }
+.btn-logout:hover { border-color: #fff; color: #fff; }
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Instrument Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.5);
+}
 
 nav {
   display: flex;
@@ -201,7 +213,7 @@ nav {
 nav button {
   background: none;
   border: none;
-  color: rgba(242,237,230,0.4);
+  color: rgba(255,255,255,0.5);
   font-family: 'Instrument Sans', sans-serif;
   font-size: 11px;
   font-weight: 500;
@@ -214,48 +226,11 @@ nav button {
   white-space: nowrap;
 }
 
-nav button:hover { color: var(--bg); }
-nav button.active { color: var(--bg); border-bottom-color: var(--accent); }
+nav button:hover { color: #fff; }
+nav button.active { color: #fff; border-bottom-color: rgba(255,255,255,0.8); }
 
 /* MAIN */
 main { max-width: 1160px; margin: 0 auto; padding: 32px 20px; }
-
-.page { display: none; }
-.page.active { display: block; }
-
-/* PAGE HEADER */
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.page-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: var(--ink);
-  line-height: 1;
-}
-
-.page-sub { font-size: 12px; color: var(--ink2); margin-top: 5px; }
-
-/* SYNC STATUS */
-.sync-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Instrument Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 1px;
-  color: var(--ink2);
-}
 
 .sync-dot {
   width: 7px; height: 7px;
@@ -334,7 +309,18 @@ input:focus, select:focus, textarea:focus { border-color: var(--ink); background
   cursor: pointer;
 }
 
-.toggle-row label { cursor:pointer; font-size:13px; text-transform:none; letter-spacing:0; color:var(--ink); font-family:'Instrument Sans',sans-serif; }
+.toggle-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  cursor: pointer;
+  accent-color: var(--bordo);
+  appearance: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.toggle-row label { cursor:pointer; font-size:13px; text-transform:none; letter-spacing:0; color:var(--ink); font-family:'Instrument Sans',sans-serif; margin:0; }
 
 /* BUTTONS */
 .btn {
@@ -505,8 +491,8 @@ tr:hover td { background:var(--surface); }
 
 /* OFFLINE BANNER */
 #offline-banner {
-  background: var(--gold);
-  color: #4a3000;
+  background: var(--bordo);
+  color: rgba(255,255,255,0.9);
   text-align: center;
   padding: 8px;
   font-family: 'Instrument Mono', monospace;
@@ -514,6 +500,121 @@ tr:hover td { background:var(--surface); }
   letter-spacing: 1px;
   display: none;
 }
+
+/* MULTI DATE PICKER */
+.multi-date-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.mdc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.mdc-nav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink2);
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  transition: all 0.15s;
+}
+
+.mdc-nav:hover { background: var(--border); color: var(--ink); }
+
+.mdc-month-label {
+  font-family: 'Instrument Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.mdc-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 8px;
+}
+
+.mdc-day-name {
+  text-align: center;
+  font-family: 'Instrument Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--ink2);
+  padding: 4px 0;
+  text-transform: uppercase;
+}
+
+.mdc-day {
+  text-align: center;
+  padding: 6px 4px;
+  font-size: 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.1s;
+  color: var(--ink);
+  border: 1px solid transparent;
+}
+
+.mdc-day:hover { background: var(--border); }
+.mdc-day.selected { background: var(--bordo); color: white; border-color: var(--bordo-dark); }
+.mdc-day.empty { cursor: default; }
+.mdc-day.empty:hover { background: none; }
+.mdc-day.today { border-color: var(--bordo); font-weight: 600; }
+
+.mdc-selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  min-height: 36px;
+}
+
+.mdc-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bordo);
+  color: white;
+  font-family: 'Instrument Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.mdc-tag button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+}
+
+.mdc-tag button:hover { color: white; }
+
+/* SORT HEADER */
+.th-sort { cursor:pointer; user-select:none; white-space:nowrap; }
+.th-sort:hover { color:var(--ink); }
+.sort-icon { font-size:10px; opacity:0.5; margin-left:3px; }
+
+/* GCAL STATUS */
+.gcal-status { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.stat-green { border-left: 3px solid #1a5c3a; }
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
@@ -588,6 +689,11 @@ tr:hover td { background:var(--surface); }
       <div class="page-title">Novo Job</div>
       <div class="page-sub">Registre um novo trabalho</div>
     </div>
+    <div class="gcal-status">
+      <div class="sync-dot" id="gcal-dot"></div>
+      <span id="gcal-label" style="font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2);letter-spacing:1px;">Google Agenda desconectado</span>
+      <button class="btn btn-outline btn-sm" onclick="connectGCal()">Conectar</button>
+    </div>
   </div>
   <div class="card">
     <div class="card-label">Dados do Job</div>
@@ -601,13 +707,25 @@ tr:hover td { background:var(--surface); }
         <label>Nome do Job</label>
         <input type="text" id="f-job" placeholder="Ex: Comercial Verão 2025">
       </div>
-      <div class="form-group">
-        <label>Data do Job</label>
-        <input type="date" id="f-data">
+      <div class="form-group full">
+        <label>Data(s) do Job — clique para selecionar um ou mais dias</label>
+        <div class="multi-date-wrap" id="mdc-wrap">
+          <div class="mdc-header">
+            <button class="mdc-nav" onclick="mdcNavMes(-1)">‹</button>
+            <span class="mdc-month-label" id="mdc-mes-label"></span>
+            <button class="mdc-nav" onclick="mdcNavMes(1)">›</button>
+          </div>
+          <div class="mdc-grid" id="mdc-grid"></div>
+          <div class="mdc-selected-tags" id="mdc-tags"></div>
+        </div>
       </div>
       <div class="form-group">
-        <label>Horário (opcional)</label>
-        <input type="time" id="f-horario">
+        <label>Horário de Entrada</label>
+        <input type="time" id="f-hora-entrada">
+      </div>
+      <div class="form-group">
+        <label>Horário de Saída</label>
+        <input type="time" id="f-hora-saida">
       </div>
       <div class="divider"></div>
       <div class="form-group">
@@ -617,18 +735,6 @@ tr:hover td { background:var(--surface); }
       <div class="form-group">
         <label>Dia do Pagamento</label>
         <input type="date" id="f-pgto">
-      </div>
-      <div class="form-group">
-        <label>Status do Pagamento</label>
-        <select id="f-status">
-          <option value="pendente">Pendente</option>
-          <option value="pago">Pago</option>
-          <option value="parcial">Parcial</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Horas Trabalhadas</label>
-        <input type="number" id="f-horas" placeholder="Ex: 10" min="0" step="0.5">
       </div>
       <div class="form-group full">
         <div class="toggle-row" onclick="document.getElementById('f-nf').click()">
@@ -678,9 +784,14 @@ tr:hover td { background:var(--surface); }
       <table>
         <thead>
           <tr>
-            <th>Data</th><th>Produtora</th><th>Job</th><th>Horário</th>
-            <th>Horas</th><th>R$/h</th><th>Valor</th><th>Pgto</th>
-            <th>Status</th><th>NF</th><th></th>
+            <th class="th-sort" onclick="sortBy('data')">Data <span class="sort-icon" data-col="data">↕</span></th>
+            <th class="th-sort" onclick="sortBy('produtora')">Produtora <span class="sort-icon" data-col="produtora">↕</span></th>
+            <th class="th-sort" onclick="sortBy('job')">Job <span class="sort-icon" data-col="job">↕</span></th>
+            <th>Entrada</th><th>Saída</th><th>Horas</th>
+            <th class="th-sort" onclick="sortBy('valor')">Valor <span class="sort-icon" data-col="valor">↕</span></th>
+            <th class="th-sort" onclick="sortBy('pgto')">Pgto <span class="sort-icon" data-col="pgto">↕</span></th>
+            <th class="th-sort" onclick="sortBy('status')">Status <span class="sort-icon" data-col="status">↕</span></th>
+            <th>NF</th><th></th>
           </tr>
         </thead>
         <tbody id="tabela-historico"></tbody>
@@ -738,10 +849,27 @@ tr:hover td { background:var(--surface); }
   <div class="page-header">
     <div>
       <div class="page-title">Config</div>
-      <div class="page-sub">Metas e configurações</div>
+      <div class="page-sub">Metas, integrações e configurações</div>
     </div>
   </div>
   <div class="card">
+    <div class="card-label">Google Agenda</div>
+    <p style="font-size:12px;color:var(--ink2);margin-bottom:14px;line-height:1.7">
+      Ao salvar um job, um evento será criado automaticamente na agenda <strong>"Jobs Audiovisual"</strong> — separada dos seus compromissos pessoais.<br>
+      Se dois jobs caírem no mesmo dia, os horários de entrada e saída definirão o evento. Sem horário = dia inteiro.
+    </p>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <button class="btn btn-accent" onclick="connectGCal()">Conectar Google Agenda</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="sync-dot" id="gcal-dot2"></div>
+        <span id="gcal-label2" style="font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2);letter-spacing:1px;">Desconectado</span>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--ink2);margin-top:12px;line-height:1.8">
+      📌 Ao clicar em "Conectar", o Google vai pedir permissão para acessar sua agenda. Aceite e pronto — a agenda "Jobs Audiovisual" será criada automaticamente se não existir.
+    </p>
+  </div>
+  <div class="card section-gap">
     <div class="card-label">Metas Mensais por Produtora</div>
     <p style="font-size:12px;color:var(--ink2);margin-bottom:14px;">Valor que deseja faturar por produtora em cada mês.</p>
     <div id="metas-config" class="metas-grid"></div>
@@ -782,8 +910,9 @@ tr:hover td { background:var(--surface); }
       <div class="form-group"><label>Produtora</label><input type="text" id="e-produtora"></div>
       <div class="form-group"><label>Nome do Job</label><input type="text" id="e-job"></div>
       <div class="form-group"><label>Data</label><input type="date" id="e-data"></div>
-      <div class="form-group"><label>Horário</label><input type="time" id="e-horario"></div>
       <div class="form-group"><label>Valor (R$)</label><input type="number" id="e-valor" step="0.01"></div>
+      <div class="form-group"><label>Entrada</label><input type="time" id="e-hora-entrada"></div>
+      <div class="form-group"><label>Saída</label><input type="time" id="e-hora-saida"></div>
       <div class="form-group"><label>Dia Pgto</label><input type="date" id="e-pgto"></div>
       <div class="form-group"><label>Status</label>
         <select id="e-status">
@@ -792,9 +921,8 @@ tr:hover td { background:var(--surface); }
           <option value="parcial">Parcial</option>
         </select>
       </div>
-      <div class="form-group"><label>Horas</label><input type="number" id="e-horas" step="0.5"></div>
       <div class="form-group full">
-        <div class="toggle-row">
+        <div class="toggle-row" onclick="document.getElementById('e-nf').click()">
           <input type="checkbox" id="e-nf">
           <label for="e-nf">Emitir Nota Fiscal</label>
         </div>
@@ -828,10 +956,732 @@ const firebaseConfig = {
   appId: "1:400845603597:web:f1f54e38646280acd0a644"
 };
 
-const fireApp = initializeApp(firebaseConfig);
-const auth    = getAuth(fireApp);
-const db      = getFirestore(fireApp);
+const fireApp  = initializeApp(firebaseConfig);
+const auth     = getAuth(fireApp);
+const db       = getFirestore(fireApp);
 const provider = new GoogleAuthProvider();
+
+// ===== STATE =====
+let jobs = [], metas = {}, currentUser = null, unsubJobs = null, editDocId = null;
+let anoAtivo = { hist: new Date().getFullYear(), prod: new Date().getFullYear(), fin: new Date().getFullYear() };
+let charts = {};
+let sortCol = 'data', sortDir = -1;
+let gcalConnected = false, gcalToken = null, jobsCalendarId = null;
+
+// ===== MULTI DATE PICKER =====
+let mdcDatas = [];
+let mdcMesAtual = new Date();
+
+function mdcRender() {
+  const ano = mdcMesAtual.getFullYear();
+  const mes = mdcMesAtual.getMonth();
+  const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','outubro','Novembro','Dezembro'];
+  document.getElementById('mdc-mes-label').textContent = `${MESES[mes]} ${ano}`;
+  const grid = document.getElementById('mdc-grid');
+  const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const hoje = new Date().toISOString().slice(0,10);
+  const primeiroDia = new Date(ano, mes, 1).getDay();
+  const totalDias = new Date(ano, mes+1, 0).getDate();
+  let html = dias.map(d=>`<div class="mdc-day-name">${d}</div>`).join('');
+  for(let i=0;i<primeiroDia;i++) html += `<div class="mdc-day empty"></div>`;
+  for(let d=1;d<=totalDias;d++){
+    const iso = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const sel = mdcDatas.includes(iso) ? 'selected' : '';
+    const tod = iso === hoje ? 'today' : '';
+    html += `<div class="mdc-day ${sel} ${tod}" onclick="mdcToggle('${iso}')">${d}</div>`;
+  }
+  grid.innerHTML = html;
+  const tags = document.getElementById('mdc-tags');
+  tags.innerHTML = mdcDatas.sort().map(d =>
+    `<div class="mdc-tag">${fmtData(d)}<button onclick="mdcRemove('${d}')">×</button></div>`
+  ).join('') || '<span style="font-size:11px;color:var(--ink2);font-family:\'Instrument Mono\',monospace;padding:4px">Nenhum dia selecionado</span>';
+}
+
+window.mdcNavMes = (dir) => { mdcMesAtual.setMonth(mdcMesAtual.getMonth()+dir); mdcRender(); };
+window.mdcToggle = (iso) => {
+  const i = mdcDatas.indexOf(iso);
+  if(i>=0) mdcDatas.splice(i,1); else mdcDatas.push(iso);
+  mdcRender();
+};
+window.mdcRemove = (iso) => { mdcDatas = mdcDatas.filter(d=>d!==iso); mdcRender(); };
+
+// ===== AUTH =====
+window.loginGoogle = async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { toast('Erro ao entrar: '+e.message, true); }
+};
+
+window.logout = async () => { if(unsubJobs) unsubJobs(); await signOut(auth); };
+
+onAuthStateChanged(auth, async user => {
+  if(user) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('loading-screen').style.display = 'flex';
+    document.getElementById('user-name').textContent = user.displayName?.split(' ')[0]||'';
+    document.getElementById('user-avatar').src = user.photoURL||'';
+    document.getElementById('cfg-avatar').src = user.photoURL||'';
+    document.getElementById('cfg-name').textContent = user.displayName||'';
+    document.getElementById('cfg-email').textContent = user.email||'';
+    await carregarMetas();
+    iniciarListener();
+  } else {
+    currentUser = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'none';
+    jobs = [];
+  }
+});
+
+// ===== FIRESTORE =====
+function iniciarListener() {
+  if(unsubJobs) unsubJobs();
+  const uid = currentUser.uid;
+  const q = query(collection(db,'users',uid,'jobs'), orderBy('criadoEm','desc'));
+  unsubJobs = onSnapshot(q,
+    snap => {
+      jobs = snap.docs.map(d=>({id:d.id,...d.data()}));
+      // auto-status: se pgto já passou e ainda pendente → pendente (não alteramos, só exibimos)
+      setSyncStatus('synced');
+      atualizarDatalist();
+      const pAtiva = document.querySelector('.page.active')?.id?.replace('page-','');
+      if(pAtiva==='historico') renderHistorico();
+      if(pAtiva==='produtoras') renderProdutoras();
+      if(pAtiva==='financeiro') renderFinanceiro();
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    },
+    err => { setSyncStatus('error'); toast('Erro de sincronização: '+err.message, true); }
+  );
+}
+
+async function carregarMetas() {
+  try { const s=await getDoc(doc(db,'users',currentUser.uid,'config','metas')); metas=s.exists()?s.data():{}; }
+  catch(e) { metas={}; }
+}
+
+window.salvarMetas = async () => {
+  document.querySelectorAll('.meta-input').forEach(inp=>{
+    const p=inp.dataset.prod, v=parseFloat(inp.value)||0;
+    if(v>0) metas[p]=v; else delete metas[p];
+  });
+  try { await setDoc(doc(db,'users',currentUser.uid,'config','metas'),metas); toast('Metas salvas!'); }
+  catch(e) { toast('Erro ao salvar metas.',true); }
+};
+
+// ===== SALVAR JOB =====
+window.salvarJob = async () => {
+  const produtora = document.getElementById('f-produtora').value.trim();
+  const job       = document.getElementById('f-job').value.trim();
+  const valor     = parseFloat(document.getElementById('f-valor').value)||0;
+  if(!produtora||!job||!valor||!mdcDatas.length) {
+    toast('Preencha produtora, job, valor e selecione ao menos 1 dia.',true); return;
+  }
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  setSyncStatus('syncing');
+
+  const entrada = document.getElementById('f-hora-entrada').value;
+  const saida   = document.getElementById('f-hora-saida').value;
+  // Calcula horas se ambos preenchidos
+  let horas = 0;
+  if(entrada && saida) {
+    const [eh,em] = entrada.split(':').map(Number);
+    const [sh,sm] = saida.split(':').map(Number);
+    horas = Math.max(0, ((sh*60+sm)-(eh*60+em))/60);
+  }
+
+  // Status automático baseado em pgto
+  const pgto = document.getElementById('f-pgto').value;
+  const hoje = new Date().toISOString().slice(0,10);
+  const statusAuto = pgto && pgto < hoje ? 'pendente' : 'pendente';
+
+  const obj = {
+    produtora, job,
+    datas:    mdcDatas.sort(),
+    data:     mdcDatas.sort()[0], // data principal = primeiro dia
+    entrada, saida, horas: +horas.toFixed(1),
+    valor,
+    rph: horas>0 ? +(valor/horas).toFixed(2) : 0,
+    pgto,
+    status: statusAuto,
+    nf:     document.getElementById('f-nf').checked,
+    obs:    document.getElementById('f-obs').value,
+    criadoEm: Date.now()
+  };
+
+  try {
+    const docRef = await addDoc(collection(db,'users',currentUser.uid,'jobs'), obj);
+    // Google Calendar
+    if(gcalConnected) await criarEventosGCal(obj, docRef.id);
+    limparForm();
+    toast('Job salvo'+(gcalConnected?' e adicionado à Agenda!':'!'));
+  } catch(e) {
+    toast('Erro ao salvar: '+e.message, true);
+    setSyncStatus('error');
+  }
+  btn.disabled = false;
+};
+
+// ===== EDITAR =====
+window.abrirEditar = (docId) => {
+  editDocId = docId;
+  const j = jobs.find(x=>x.id===docId); if(!j) return;
+  document.getElementById('e-produtora').value    = j.produtora;
+  document.getElementById('e-job').value          = j.job;
+  document.getElementById('e-data').value         = j.data;
+  document.getElementById('e-hora-entrada').value = j.entrada||'';
+  document.getElementById('e-hora-saida').value   = j.saida||'';
+  document.getElementById('e-valor').value        = j.valor;
+  document.getElementById('e-pgto').value         = j.pgto||'';
+  document.getElementById('e-status').value       = j.status;
+  document.getElementById('e-nf').checked         = j.nf;
+  document.getElementById('e-obs').value          = j.obs||'';
+  document.getElementById('modal-editar').classList.add('open');
+};
+
+window.salvarEdicao = async () => {
+  const entrada = document.getElementById('e-hora-entrada').value;
+  const saida   = document.getElementById('e-hora-saida').value;
+  const valor   = parseFloat(document.getElementById('e-valor').value)||0;
+  let horas = 0;
+  if(entrada && saida) {
+    const [eh,em]=entrada.split(':').map(Number), [sh,sm]=saida.split(':').map(Number);
+    horas = Math.max(0,((sh*60+sm)-(eh*60+em))/60);
+  }
+  const upd = {
+    produtora: document.getElementById('e-produtora').value,
+    job:       document.getElementById('e-job').value,
+    data:      document.getElementById('e-data').value,
+    entrada, saida, horas: +horas.toFixed(1),
+    valor, rph: horas>0 ? +(valor/horas).toFixed(2) : 0,
+    pgto:   document.getElementById('e-pgto').value,
+    status: document.getElementById('e-status').value,
+    nf:     document.getElementById('e-nf').checked,
+    obs:    document.getElementById('e-obs').value
+  };
+  try {
+    setSyncStatus('syncing');
+    await updateDoc(doc(db,'users',currentUser.uid,'jobs',editDocId), upd);
+    fecharModal(); toast('Job atualizado!');
+  } catch(e) { toast('Erro ao atualizar.',true); }
+};
+
+window.deletar = async (docId) => {
+  if(!confirm('Excluir este job?')) return;
+  try { setSyncStatus('syncing'); await deleteDoc(doc(db,'users',currentUser.uid,'jobs',docId)); toast('Job removido.'); }
+  catch(e) { toast('Erro ao excluir.',true); }
+};
+
+// Baixa manual no financeiro
+window.darBaixa = async (docId) => {
+  try {
+    setSyncStatus('syncing');
+    await updateDoc(doc(db,'users',currentUser.uid,'jobs',docId), {status:'pago'});
+    toast('Pagamento confirmado!');
+  } catch(e) { toast('Erro.',true); }
+};
+
+// ===== HISTÓRICO =====
+window.sortBy = (col) => {
+  if(sortCol===col) sortDir *= -1; else { sortCol=col; sortDir=-1; }
+  document.querySelectorAll('.sort-icon').forEach(s => s.textContent='↕');
+  const ic = document.querySelector(`.sort-icon[data-col="${col}"]`);
+  if(ic) ic.textContent = sortDir===1 ? '↑' : '↓';
+  renderHistorico();
+};
+
+window.renderHistorico = () => {
+  const busca      = (document.getElementById('busca').value||'').toLowerCase();
+  const filtroSt   = document.getElementById('filtro-status').value;
+  const filtroProd = document.getElementById('filtro-prod').value;
+
+  const prods = [...new Set(jobs.map(j=>j.produtora))];
+  const sel = document.getElementById('filtro-prod'), cur=sel.value;
+  sel.innerHTML = '<option value="">Todas as produtoras</option>' +
+    prods.map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+
+  let lista = jobsDoAno('hist').filter(j => {
+    const b = !busca || j.job.toLowerCase().includes(busca) || j.produtora.toLowerCase().includes(busca);
+    const s = !filtroSt || j.status===filtroSt;
+    const p = !filtroProd || j.produtora===filtroProd;
+    return b&&s&&p;
+  });
+
+  // sort
+  lista.sort((a,b) => {
+    let va = a[sortCol]||'', vb = b[sortCol]||'';
+    if(sortCol==='valor') { va=a.valor||0; vb=b.valor||0; return (va-vb)*sortDir; }
+    return va.toString().localeCompare(vb.toString()) * sortDir;
+  });
+
+  const tbody = document.getElementById('tabela-historico');
+  const empty = document.getElementById('empty-hist');
+  if(!lista.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  const hoje = new Date().toISOString().slice(0,10);
+  const statusBadge = (j) => {
+    // Auto: se pgto passou e não pago → mostrar como atrasado
+    if(j.status!=='pago' && j.pgto && j.pgto < hoje)
+      return '<span class="badge" style="background:#f0e8e8;color:#6b1a2a;border:1px solid #d4b0b0">Atrasado</span>';
+    return {
+      pago:     '<span class="badge badge-pago">Pago</span>',
+      pendente: '<span class="badge badge-pendente">Pendente</span>',
+      parcial:  '<span class="badge badge-parcial">Parcial</span>'
+    }[j.status]||'';
+  };
+
+  tbody.innerHTML = lista.map(j => {
+    const datasStr = (j.datas||[j.data]).map(fmtData).join(', ');
+    const horasStr = j.horas ? j.horas+'h' : (j.entrada&&j.saida?'—':'—');
+    return `<tr>
+      <td class="mono" style="white-space:nowrap">${datasStr}</td>
+      <td><strong>${j.produtora}</strong></td>
+      <td>${j.job}</td>
+      <td class="mono">${j.entrada||'—'}</td>
+      <td class="mono">${j.saida||'—'}</td>
+      <td class="mono">${horasStr}</td>
+      <td class="money">R$ ${j.valor.toFixed(2).replace('.',',')}</td>
+      <td class="mono">${fmtData(j.pgto)}</td>
+      <td>${statusBadge(j)}</td>
+      <td>${j.nf?'<span class="badge badge-nf">NF</span>':'—'}</td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-outline btn-sm" onclick="abrirEditar('${j.id}')">✏</button>
+          <button class="btn btn-accent btn-sm" onclick="deletar('${j.id}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+};
+
+// ===== PRODUTORAS =====
+window.renderProdutoras = () => {
+  const lista = jobsDoAno('prod');
+  const prods = {};
+  lista.forEach(j => {
+    if(!prods[j.produtora]) prods[j.produtora]={total:0,pago:0,pend:0,dias:0,horas:0};
+    const p=prods[j.produtora];
+    p.total+=j.valor; p.dias+=( j.datas?.length||1); p.horas+=j.horas||0;
+    if(j.status==='pago') p.pago+=j.valor; else p.pend+=j.valor;
+  });
+  const el=document.getElementById('lista-produtoras');
+  if(!Object.keys(prods).length){ el.innerHTML='<div class="empty"><div class="empty-icon">🏢</div><p>Nenhum job neste ano.</p></div>'; return; }
+  el.innerHTML = Object.entries(prods).sort((a,b)=>b[1].total-a[1].total).map(([nome,p])=>{
+    const meta=metas[nome]||0, pct=meta>0?Math.min((p.total/meta)*100,100):0, over=meta>0&&p.total>=meta;
+    const rph=p.horas>0?'R$'+(p.total/p.horas).toFixed(0)+'/h':'—';
+    return `<div class="prod-card">
+      <div class="prod-header">
+        <div class="prod-name">${nome}</div>
+        ${meta>0?`<span class="badge ${over?'badge-pago':'badge-pendente'}">${over?'✓ Meta atingida':'Em progresso'}</span>`:''}
+      </div>
+      <div class="prod-stats">
+        <div><div class="prod-stat-val">R$${p.total.toFixed(0)}</div><div class="prod-stat-lbl">Faturado</div></div>
+        <div><div class="prod-stat-val" style="color:#1a5c3a">R$${p.pago.toFixed(0)}</div><div class="prod-stat-lbl">Recebido</div></div>
+        <div><div class="prod-stat-val" style="color:var(--bordo)">R$${p.pend.toFixed(0)}</div><div class="prod-stat-lbl">Pendente</div></div>
+        <div><div class="prod-stat-val">${p.dias}</div><div class="prod-stat-lbl">Dias</div></div>
+        <div><div class="prod-stat-val">${rph}</div><div class="prod-stat-lbl">R$/Hora</div></div>
+      </div>
+      ${meta>0?`<div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2);margin-bottom:4px">
+          <span>${pct.toFixed(0)}% da meta (R$${meta.toLocaleString('pt-BR')})</span>
+          <span>${over?'✓':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR')}</span>
+        </div>
+        <div class="meta-bar-track"><div class="meta-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+};
+
+// ===== FINANCEIRO =====
+window.renderFinanceiro = () => {
+  const lista = jobsDoAno('fin');
+  const total  = lista.reduce((s,j)=>s+j.valor,0);
+  const pago   = lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const pend   = lista.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  const horas  = lista.reduce((s,j)=>s+(j.horas||0),0);
+  const ticket = lista.length?total/lista.length:0;
+
+  document.getElementById('stats-fin').innerHTML = `
+    <div class="stat-card stat-ink"><div class="stat-label">Faturamento ${anoAtivo.fin}</div><div class="stat-value">R$${total.toFixed(0)}</div><div class="stat-sub">${lista.length} jobs · ${horas.toFixed(0)}h</div></div>
+    <div class="stat-card stat-green"><div class="stat-label">Recebido</div><div class="stat-value">R$${pago.toFixed(0)}</div><div class="stat-sub">${total>0?((pago/total)*100).toFixed(0):0}% do total</div></div>
+    <div class="stat-card stat-accent"><div class="stat-label">A Receber</div><div class="stat-value">R$${pend.toFixed(0)}</div><div class="stat-sub">pendente / parcial</div></div>
+    <div class="stat-card stat-gold"><div class="stat-label">Ticket Médio</div><div class="stat-value">R$${ticket.toFixed(0)}</div><div class="stat-sub">por job</div></div>
+  `;
+
+  // Pagamentos por produtora no mês atual (resumo)
+  const mesAtual = new Date().toISOString().slice(0,7);
+  const jobsMes  = jobs.filter(j=>j.data&&j.data.startsWith(mesAtual)&&j.status!=='pago');
+  const porProd  = {};
+  jobsMes.forEach(j => { porProd[j.produtora]=(porProd[j.produtora]||0)+j.valor; });
+
+  const pgEl = document.getElementById('pagamentos-proximos');
+  if(!Object.keys(porProd).length) {
+    pgEl.innerHTML='<div class="empty" style="padding:16px"><p>Nenhum pagamento pendente este mês.</p></div>';
+  } else {
+    const hoje = new Date().toISOString().slice(0,10);
+    pgEl.innerHTML = Object.entries(porProd).sort((a,b)=>b[1]-a[1]).map(([prod,val])=>{
+      // pega próximo pgto desta produtora
+      const proxJob = jobs.filter(j=>j.produtora===prod&&j.pgto&&j.status!=='pago').sort((a,b)=>a.pgto.localeCompare(b.pgto))[0];
+      const diff = proxJob ? Math.ceil((new Date(proxJob.pgto+'T00:00:00')-new Date())/86400000) : null;
+      const cls = diff===null?'ok':diff<0?'urgent':diff<=5?'soon':'ok';
+      const lbl = diff===null?'—':diff<0?`${Math.abs(diff)}d atrasado`:diff===0?'Hoje':`em ${diff}d`;
+      return `<div class="payment-item ${cls}">
+        <div>
+          <strong>${prod}</strong>
+          <div style="font-size:11px;color:var(--ink2);margin-top:2px">${proxJob?fmtData(proxJob.pgto):''} · ${lbl}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="text-align:right">
+            <div class="money">R$ ${val.toFixed(2).replace('.',',')}</div>
+            <div style="font-size:10px;color:var(--ink2)">pendente no mês</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="darBaixaProd('${prod}')" title="Dar baixa em todos os jobs desta produtora">✓ Baixa</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Metas
+  const prodsComMeta = Object.keys(metas);
+  const metasEl = document.getElementById('metas-display');
+  if(!prodsComMeta.length) {
+    metasEl.innerHTML='<p style="font-size:12px;color:var(--ink2)">Configure as metas em <strong>Config</strong>.</p>';
+  } else {
+    metasEl.innerHTML='<div class="metas-grid">'+prodsComMeta.map(p=>{
+      const fat=jobsMes.filter(j=>j.produtora===p).reduce((s,j)=>s+j.valor,0)+
+        jobs.filter(j=>j.data&&j.data.startsWith(mesAtual)&&j.produtora===p&&j.status==='pago').reduce((s,j)=>s+j.valor,0);
+      const meta=metas[p]||0, pct=meta>0?Math.min((fat/meta)*100,100):0, over=fat>=meta;
+      return `<div class="meta-item">
+        <div style="flex:1">
+          <div class="meta-prod-name">${p}</div>
+          <div style="font-size:11px;color:var(--ink2);margin-top:2px">R$${fat.toFixed(0)} / R$${meta.toFixed(0)}</div>
+          <div class="meta-bar-track" style="margin-top:8px"><div class="meta-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+        </div>
+        <div style="min-width:52px;text-align:right">
+          <div style="font-family:'Instrument Mono',monospace;font-size:13px;color:${over?'#1a5c3a':'var(--bordo)'}">${pct.toFixed(0)}%</div>
+          <div style="font-size:10px;color:var(--ink2);margin-top:2px">${over?'✓':'-R$'+(meta-fat).toFixed(0)}</div>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
+  buildCharts(lista);
+};
+
+// Baixa por produtora
+window.darBaixaProd = async (prod) => {
+  const mesAtual = new Date().toISOString().slice(0,7);
+  const pendentes = jobs.filter(j=>j.produtora===prod&&j.data&&j.data.startsWith(mesAtual)&&j.status!=='pago');
+  if(!pendentes.length){toast('Nenhum pendente.',true);return;}
+  if(!confirm(`Marcar ${pendentes.length} job(s) de "${prod}" como pagos?`)) return;
+  setSyncStatus('syncing');
+  for(const j of pendentes)
+    await updateDoc(doc(db,'users',currentUser.uid,'jobs',j.id),{status:'pago'});
+  toast(`${pendentes.length} job(s) marcados como pagos!`);
+};
+
+// ===== CHARTS MINIMALISTAS =====
+function buildCharts(lista) {
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mensal={}, diasMes={}, prodMap={};
+  lista.forEach(j=>{
+    if(!j.data) return;
+    const m=j.data.substring(0,7);
+    mensal[m]=(mensal[m]||0)+j.valor;
+    diasMes[m]=(diasMes[m]||0)+1;
+    prodMap[j.produtora]=(prodMap[j.produtora]||0)+j.valor;
+  });
+  const meses=Object.keys(mensal).sort();
+  const mkL=m=>MESES[parseInt(m.split('-')[1])-1];
+  // Paleta neutra variada
+  const cores=['#111','#555','#888','#aaa','#6b1a2a','#9b6'];
+
+  const baseOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{ display:false },
+      tooltip:{ backgroundColor:'#fff', titleColor:'#111', bodyColor:'#555', borderColor:'#ddd', borderWidth:1,
+        callbacks:{ label: ctx => ' R$ '+ctx.parsed.y?.toFixed(0)||ctx.parsed } }
+    },
+    scales:{
+      x:{ticks:{color:'#999',font:{family:'Instrument Mono',size:10}},grid:{display:false},border:{display:false}},
+      y:{ticks:{color:'#999',font:{family:'Instrument Mono',size:10}},grid:{color:'#f0f0f0'},border:{display:false}}
+    }
+  };
+
+  drawChart('chart-mensal','bar',meses.map(mkL),[{data:meses.map(m=>mensal[m]),backgroundColor:'#111',borderRadius:2,barThickness:18}],baseOpts);
+
+  const p1=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const p2=lista.filter(j=>j.status==='pendente').reduce((s,j)=>s+j.valor,0);
+  const p3=lista.filter(j=>j.status==='parcial').reduce((s,j)=>s+j.valor,0);
+  drawChart('chart-status','doughnut',['Pago','Pendente','Parcial'],[{data:[p1,p2,p3],backgroundColor:['#333','#aaa','#6b1a2a'],borderWidth:0,hoverOffset:4}],{
+    ...baseOpts,
+    plugins:{...baseOpts.plugins,legend:{display:true,position:'bottom',labels:{color:'#555',font:{family:'Instrument Mono',size:10},boxWidth:10,padding:16}}},
+    cutout:'65%', scales:undefined
+  });
+
+  const pKeys=Object.keys(prodMap).sort((a,b)=>prodMap[b]-prodMap[a]).slice(0,6);
+  drawChart('chart-prod','bar',pKeys,[{data:pKeys.map(p=>prodMap[p]),backgroundColor:pKeys.map((_,i)=>cores[i%cores.length]),borderRadius:2,barThickness:18}],baseOpts);
+  drawChart('chart-dias','bar',meses.map(mkL),[{data:meses.map(m=>diasMes[m]||0),backgroundColor:'#888',borderRadius:2,barThickness:18}],{
+    ...baseOpts, scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,stepSize:1}}}
+  });
+}
+
+function drawChart(id,type,labels,datasets,opts) {
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id); if(!ctx) return;
+  charts[id]=new Chart(ctx.getContext('2d'),{type,data:{labels,datasets},options:opts||{}});
+}
+
+// ===== GOOGLE CALENDAR =====
+window.connectGCal = () => {
+  const client = google?.accounts?.oauth2?.initTokenClient({
+    client_id: '400845603597-1nifpakj99jrj0lnkjut8o8iu08ka3tl.apps.googleusercontent.com',
+    scope: 'https://www.googleapis.com/auth/calendar',
+    callback: async (resp) => {
+      if(resp.error){ toast('Erro ao conectar Google Agenda.',true); return; }
+      gcalToken = resp.access_token;
+      gcalConnected = true;
+      setGCalStatus(true);
+      // Garante que a agenda "Jobs Audiovisual" existe
+      await garantirAgenda();
+      toast('Google Agenda conectado!');
+    }
+  });
+  if(!client){ carregarGoogleIdentity(); return; }
+  client.requestAccessToken();
+};
+
+function carregarGoogleIdentity() {
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = () => window.connectGCal();
+  document.head.appendChild(s);
+}
+
+async function garantirAgenda() {
+  // Lista agendas
+  const r = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',
+    {headers:{Authorization:'Bearer '+gcalToken}});
+  const d = await r.json();
+  const existente = d.items?.find(c=>c.summary==='Jobs Audiovisual');
+  if(existente){ jobsCalendarId=existente.id; return; }
+  // Cria agenda
+  const cr = await fetch('https://www.googleapis.com/calendar/v3/calendars',{
+    method:'POST', headers:{Authorization:'Bearer '+gcalToken,'Content-Type':'application/json'},
+    body:JSON.stringify({summary:'Jobs Audiovisual',timeZone:'America/Sao_Paulo'})
+  });
+  const cd = await cr.json();
+  jobsCalendarId = cd.id;
+}
+
+async function criarEventosGCal(job, jobId) {
+  if(!gcalToken||!jobsCalendarId) return;
+  const datas = job.datas || [job.data];
+  for(const data of datas) {
+    let start, end;
+    if(job.entrada && job.saida) {
+      start = {dateTime:`${data}T${job.entrada}:00`,timeZone:'America/Sao_Paulo'};
+      end   = {dateTime:`${data}T${job.saida}:00`,timeZone:'America/Sao_Paulo'};
+    } else {
+      // dia inteiro
+      const proxDia = new Date(data+'T12:00:00');
+      proxDia.setDate(proxDia.getDate()+1);
+      start = {date:data};
+      end   = {date:proxDia.toISOString().slice(0,10)};
+    }
+    const evento = {
+      summary: `🎬 ${job.job} — ${job.produtora}`,
+      description: `Valor: R$ ${job.valor.toFixed(2)}\nPagamento: ${fmtData(job.pgto)}\nNF: ${job.nf?'Sim':'Não'}\n${job.obs||''}`,
+      start, end,
+      colorId: '11', // vermelho tomate
+    };
+    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${jobsCalendarId}/events`,{
+      method:'POST', headers:{Authorization:'Bearer '+gcalToken,'Content-Type':'application/json'},
+      body:JSON.stringify(evento)
+    });
+  }
+}
+
+function setGCalStatus(on) {
+  ['gcal-dot','gcal-dot2'].forEach(id=>{const e=document.getElementById(id);if(e)e.className='sync-dot'+(on?' synced':'');});
+  ['gcal-label','gcal-label2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=on?'Google Agenda conectado':'Google Agenda desconectado';});
+}
+
+// ===== CONFIG =====
+window.renderConfigMetas = () => {
+  const prods=[...new Set(jobs.map(j=>j.produtora))];
+  const el=document.getElementById('metas-config');
+  if(!prods.length){el.innerHTML='<p style="font-size:12px;color:var(--ink2)">Registre jobs primeiro.</p>';return;}
+  el.innerHTML=prods.map(p=>`
+    <div class="meta-item">
+      <div class="meta-prod-name">${p}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-family:'Instrument Mono',monospace;font-size:12px;color:var(--ink2)">R$</span>
+        <input type="number" class="meta-input" data-prod="${p}" value="${metas[p]||''}" placeholder="0,00" min="0" step="100" style="width:110px;text-align:right;font-family:'Instrument Mono',monospace">
+      </div>
+    </div>`).join('');
+};
+
+// ===== EXPORT =====
+window.exportCSV = () => {
+  if(!jobs.length){toast('Nenhum job.',true);return;}
+  const h=['Datas','Produtora','Job','Entrada','Saída','Horas','Valor','Pgto','Status','NF'];
+  const rows=jobs.map(j=>[(j.datas||[j.data]).join(';'),j.produtora,j.job,j.entrada||'',j.saida||'',j.horas||0,j.valor.toFixed(2),j.pgto||'',j.status,j.nf?'Sim':'Não']);
+  download('controle_audiovisual.csv',[h,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n'),'text/csv');
+  toast('CSV exportado!');
+};
+
+window.exportRelatorio = () => {
+  if(!jobs.length){toast('Nenhum job.',true);return;}
+  const total=jobs.reduce((s,j)=>s+j.valor,0);
+  const pago=jobs.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório</title>
+  <style>body{font-family:Helvetica,sans-serif;max-width:900px;margin:40px auto;color:#111;padding:0 20px}
+  h1{font-size:28px;margin-bottom:4px}
+  .sub{color:#777;font-size:12px;margin-bottom:24px}
+  .resumo{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+  .r{background:#fff;border:1px solid #ddd;padding:14px 18px;flex:1;min-width:130px}
+  .r-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:6px}
+  .r-v{font-size:20px;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#111;color:#fff;padding:9px 12px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;text-align:left}
+  td{padding:10px 12px;border-bottom:1px solid #eee}tr:last-child td{border-bottom:none}</style></head><body>
+  <h1>Controle Audiovisual</h1><p class="sub">Gerado em ${new Date().toLocaleDateString('pt-BR')} · ${jobs.length} jobs</p>
+  <div class="resumo">
+    <div class="r"><div class="r-l">Faturamento</div><div class="r-v">R$ ${total.toFixed(2).replace('.',',')}</div></div>
+    <div class="r"><div class="r-l">Recebido</div><div class="r-v" style="color:#1a5c3a">R$ ${pago.toFixed(2).replace('.',',')}</div></div>
+    <div class="r"><div class="r-l">A Receber</div><div class="r-v" style="color:#6b1a2a">R$ ${(total-pago).toFixed(2).replace('.',',')}</div></div>
+    <div class="r"><div class="r-l">Jobs</div><div class="r-v">${jobs.length}</div></div>
+  </div>
+  <table><thead><tr><th>Data</th><th>Produtora</th><th>Job</th><th>Valor</th><th>Pgto</th><th>Status</th><th>NF</th></tr></thead>
+  <tbody>${jobs.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(j=>`<tr>
+    <td>${(j.datas||[j.data]).map(fmtData).join(', ')}</td><td><strong>${j.produtora}</strong></td><td>${j.job}</td>
+    <td><strong>R$ ${j.valor.toFixed(2).replace('.',',')}</strong></td>
+    <td>${fmtData(j.pgto)}</td><td>${j.status}</td><td>${j.nf?'✓':'—'}</td></tr>`).join('')}
+  </tbody></table></body></html>`;
+  download('relatorio_audiovisual.html',html,'text/html');
+  toast('Relatório gerado!');
+};
+
+window.exportBackup = () => {
+  download('backup_audiovisual.json',JSON.stringify({jobs,metas},null,2),'application/json');
+  toast('Backup exportado!');
+};
+
+window.lerBackup = (e) => {
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.jobs&&Array.isArray(data.jobs)){
+        setSyncStatus('syncing');
+        for(const j of data.jobs){ const{id,...rest}=j; await addDoc(collection(db,'users',currentUser.uid,'jobs'),{...rest,criadoEm:rest.criadoEm||Date.now()}); }
+        toast(`${data.jobs.length} jobs importados!`);
+      }
+    }catch{toast('Arquivo inválido.',true);}
+  };
+  r.readAsText(file);
+};
+
+window.limparTudo = async () => {
+  if(!confirm('Apagar TODOS os dados?\nEsta ação não pode ser desfeita.')) return;
+  try {
+    setSyncStatus('syncing');
+    const q=query(collection(db,'users',currentUser.uid,'jobs'));
+    const snap=await new Promise(res=>onSnapshot(q,res));
+    for(const d of snap.docs) await deleteDoc(d.ref);
+    toast('Dados apagados.');
+  }catch(e){toast('Erro ao limpar.',true);}
+};
+
+// ===== NAVEGAÇÃO =====
+window.showPage = (name,btn) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='historico'){buildYearTabs('hist');renderHistorico();}
+  if(name==='produtoras'){buildYearTabs('prod');renderProdutoras();}
+  if(name==='financeiro'){buildYearTabs('fin');renderFinanceiro();}
+  if(name==='config'){renderConfigMetas();}
+};
+
+// ===== ANOS =====
+function getAnos(){
+  const anos=[...new Set(jobs.map(j=>j.data?j.data.split('-')[0]:null).filter(Boolean))];
+  if(!anos.length) anos.push(String(new Date().getFullYear()));
+  return anos.sort().reverse();
+}
+
+function buildYearTabs(page){
+  const anos=getAnos(), el=document.getElementById(`year-tabs-${page}`); if(!el) return;
+  el.innerHTML=anos.map(a=>`<button class="year-tab ${a==anoAtivo[page]?'active':''}" onclick="setAno('${page}',${a},this)">${a}</button>`).join('');
+}
+
+window.setAno=(page,ano,btn)=>{
+  anoAtivo[page]=ano;
+  document.querySelectorAll(`#year-tabs-${page} .year-tab`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(page==='hist') renderHistorico();
+  if(page==='prod') renderProdutoras();
+  if(page==='fin')  renderFinanceiro();
+};
+
+function jobsDoAno(page){ return jobs.filter(j=>j.data&&j.data.startsWith(String(anoAtivo[page]))); }
+
+// ===== UTILS =====
+window.limparForm = () => {
+  ['f-produtora','f-job','f-hora-entrada','f-hora-saida','f-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-valor').value='';
+  document.getElementById('f-pgto').value='';
+  document.getElementById('f-nf').checked=false;
+  mdcDatas=[]; mdcRender();
+};
+
+window.fecharModal = () => document.getElementById('modal-editar').classList.remove('open');
+
+function atualizarDatalist(){
+  const prods=[...new Set(jobs.map(j=>j.produtora))];
+  document.getElementById('prod-list').innerHTML=prods.map(p=>`<option value="${p}">`).join('');
+}
+
+function fmtData(d){ return d?d.split('-').reverse().join('/'):'—'; }
+
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot'), lbl=document.getElementById('sync-label');
+  const map={synced:['synced','Sincronizado'],syncing:['syncing','Sincronizando...'],error:['error','Erro']};
+  const [cls,txt]=map[s]||['','—'];
+  dot.className='sync-dot'+(cls?' '+cls:''); lbl.textContent=txt;
+}
+
+function download(filename,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=filename; a.click();
+}
+
+window.toast = (msg,err=false)=>{
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=err?'var(--bordo)':'var(--ink)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+};
+
+window.addEventListener('online',  ()=>{ document.getElementById('offline-banner').style.display='none'; setSyncStatus('synced'); });
+window.addEventListener('offline', ()=>{ document.getElementById('offline-banner').style.display='block'; setSyncStatus('error'); });
+
+// Init calendário
+mdcRender();
+
+</script>
+</body>
+</html>
 
 // ===== STATE =====
 let jobs = [];
@@ -1383,13 +2233,6 @@ window.toast = (msg,err=false)=>{
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3200);
 };
-
-// Offline detection
-window.addEventListener('online',  ()=>{ document.getElementById('offline-banner').style.display='none'; setSyncStatus('synced'); });
-window.addEventListener('offline', ()=>{ document.getElementById('offline-banner').style.display='block'; setSyncStatus('error'); });
-
-// Init form date
-document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
 
 </script>
 </body>
