@@ -475,11 +475,13 @@ tr:hover td{background:#303033}
     </p>
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <button class="btn btn-bordo" onclick="connectGCal()">Conectar Google Agenda</button>
+      <button class="btn btn-outline" id="btn-sync-hist" onclick="sincronizarHistorico()" style="display:none">&#8635; Sincronizar Histórico</button>
       <div class="gcal-status">
         <div class="gcal-dot" id="gcal-dot2"></div>
         <span style="font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2)" id="gcal-lbl2">Desconectado</span>
       </div>
     </div>
+    <p style="font-size:11px;color:var(--ink2);margin-top:12px;line-height:1.7" id="sync-hist-info" style="display:none"></p>
   </div>
   <div class="card section-gap">
     <div class="card-label">Metas Mensais por Produtora</div>
@@ -1012,7 +1014,34 @@ function setGCalUI(on) {
   ['gcal-lbl','gcal-lbl2'].forEach(id => {
     const e = document.getElementById(id); if(e) e.textContent = on ? 'Google Agenda conectado' : 'Desconectado';
   });
+  const btn = document.getElementById('btn-sync-hist');
+  if(btn) btn.style.display = on ? 'inline-flex' : 'none';
 }
+
+window.sincronizarHistorico = async () => {
+  if(!gcalOk || !calId) { toast('Conecte o Google Agenda primeiro.', true); return; }
+  if(!jobs.length) { toast('Nenhum job para sincronizar.', true); return; }
+  if(!confirm(`Enviar ${jobs.length} job(s) para o Google Agenda?\nIsso criará eventos para todos os jobs cadastrados.`)) return;
+
+  const info = document.getElementById('sync-hist-info');
+  let ok = 0, erro = 0;
+
+  for(const job of jobs) {
+    try {
+      await criarEventos(job);
+      ok++;
+      if(info) info.textContent = `Sincronizando... ${ok}/${jobs.length}`;
+      if(info) info.style.display = 'block';
+      // pequena pausa para não sobrecarregar a API
+      await new Promise(r => setTimeout(r, 200));
+    } catch(e) {
+      erro++;
+    }
+  }
+
+  if(info) info.textContent = `✓ ${ok} job(s) enviados para o Google Agenda${erro > 0 ? ` · ${erro} erro(s)` : ''}.`;
+  toast(`${ok} jobs sincronizados!`);
+};
 
 // CONFIG
 window.renderConfigMetas=()=>{
