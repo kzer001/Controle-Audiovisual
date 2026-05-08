@@ -985,25 +985,42 @@ async function garantirAgenda() {
 async function criarEventos(job) {
   if(!gcalOk || !calId || !gcalToken) return;
   for(const data of (job.datas || [job.data])) {
+    const titulo = `🎬 ${job.job} — ${job.produtora}`;
+    const desc   = `Valor: R$ ${job.valor.toFixed(2)}\nPagamento: ${fmtD(job.pgto)}\nNF: ${job.nf?'Sim':'Não'}\n${job.obs||''}`;
+
     let start, end;
     if(job.entrada && job.saida) {
       start = { dateTime: `${data}T${job.entrada}:00`, timeZone: 'America/Sao_Paulo' };
       end   = { dateTime: `${data}T${job.saida}:00`,   timeZone: 'America/Sao_Paulo' };
     } else {
-      const prox = new Date(data + 'T12:00:00');
-      prox.setDate(prox.getDate() + 1);
+      const prox = new Date(data + 'T12:00:00'); prox.setDate(prox.getDate()+1);
       start = { date: data };
-      end   = { date: prox.toISOString().slice(0, 10) };
+      end   = { date: prox.toISOString().slice(0,10) };
     }
-    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events`, {
-      method:  'POST',
-      headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        summary:     `🎬 ${job.job} — ${job.produtora}`,
-        description: `Valor: R$ ${job.valor.toFixed(2)}\nPagamento: ${fmtD(job.pgto)}\nNF: ${job.nf ? 'Sim' : 'Não'}\n${job.obs || ''}`,
-        start, end, colorId: '11'
-      })
-    });
+
+    const resource = { summary: titulo, description: desc, start, end, colorId: '11' };
+
+    // Verifica se já existe evento com mesmo título e data antes de criar
+    const searchUrl = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events?q=${encodeURIComponent(titulo)}&timeMin=${data}T00:00:00-03:00&timeMax=${data}T23:59:59-03:00`;
+    const sr = await fetch(searchUrl, { headers: { Authorization: 'Bearer ' + gcalToken } });
+    const sd = await sr.json();
+    const existente = sd.items?.find(e => e.summary === titulo);
+
+    if(existente) {
+      // Atualiza evento existente
+      await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${existente.id}`, {
+        method: 'PUT',
+        headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(resource)
+      });
+    } else {
+      // Cria novo evento
+      await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calId}/events`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + gcalToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(resource)
+      });
+    }
   }
 }
 
