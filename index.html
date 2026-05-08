@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1712">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Controle Audiovisual">
+<title>Controle Audiovisual</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@300;400;500;600&family=Instrument+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f2ede6;
+  --surface: #ebe6de;
+  --card: #ffffff;
+  --border: #ddd8cf;
+  --ink: #1a1712;
+  --ink2: #6b6560;
+  --accent: #c8401a;
+  --accent2: #1a5c3a;
+  --gold: #b8860b;
+  --radius: 4px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* LOGIN SCREEN */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  gap: 32px;
+}
+
+.login-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: 16px;
+  color: var(--bg);
+}
+
+.login-sub {
+  font-family: 'Instrument Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-top: -20px;
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 32px;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.btn-google:hover { background: #fff; transform: translateY(-2px); }
+
+.login-note {
+  font-size: 11px;
+  color: var(--ink2);
+  font-family: 'Instrument Mono', monospace;
+  letter-spacing: 1px;
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.8;
+}
+
+/* LOADING */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* APP */
+#app { display: none; }
+
+/* HEADER */
+header {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-tag {
+  font-family: 'Instrument Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #555;
+  background: rgba(255,255,255,0.07);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #333;
+}
+
+.btn-logout {
+  background: none;
+  border: 1px solid #333;
+  border-radius: var(--radius);
+  color: var(--ink2);
+  cursor: pointer;
+  font-family: 'Instrument Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+
+.btn-logout:hover { border-color: var(--bg); color: var(--bg); }
+
+nav {
+  display: flex;
+  gap: 2px;
+}
+
+nav button {
+  background: none;
+  border: none;
+  color: rgba(242,237,230,0.4);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+nav button:hover { color: var(--bg); }
+nav button.active { color: var(--bg); border-bottom-color: var(--accent); }
+
+/* MAIN */
+main { max-width: 1160px; margin: 0 auto; padding: 32px 20px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* PAGE HEADER */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.page-sub { font-size: 12px; color: var(--ink2); margin-top: 5px; }
+
+/* SYNC STATUS */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Instrument Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--ink2);
+}
+
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.sync-dot.synced { background: var(--accent2); }
+.sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+.sync-dot.error { background: var(--accent); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.card-label {
+  font-family: 'Instrument Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* FORM */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1/-1; }
+
+label {
+  font-family: 'Instrument Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+
+input, select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  width: 100%;
+  transition: all 0.15s;
+  outline: none;
+  appearance: none;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--ink); background: #fff; }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.toggle-row label { cursor:pointer; font-size:13px; text-transform:none; letter-spacing:0; color:var(--ink); font-family:'Instrument Sans',sans-serif; }
+
+/* BUTTONS */
+.btn {
+  background: var(--ink);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--bg);
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 11px 24px;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.btn:hover { background: #2a2520; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--ink); }
+.btn-outline:hover { background: var(--surface); }
+.btn-accent { background: var(--accent); color: white; }
+.btn-accent:hover { background: #a8300a; }
+.btn-green { background: var(--accent2); color: white; }
+.btn-green:hover { background: #144d2f; }
+.btn-sm { padding: 6px 14px; font-size: 11px; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.stat-accent { border-left: 3px solid var(--accent); }
+.stat-green { border-left: 3px solid var(--accent2); }
+.stat-gold { border-left: 3px solid var(--gold); }
+.stat-ink { border-left: 3px solid var(--ink); }
+
+.stat-label { font-family:'Instrument Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink2); margin-bottom:8px; }
+.stat-value { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; color:var(--ink); line-height:1; letter-spacing:-0.5px; }
+.stat-sub { font-size:11px; color:var(--ink2); margin-top:4px; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width:100%; border-collapse:collapse; }
+th { font-family:'Instrument Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink2); padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+td { padding:12px 12px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--surface); }
+
+.mono { font-family:'Instrument Mono',monospace; font-size:12px; }
+.money { font-family:'Instrument Mono',monospace; color:var(--accent2); font-size:13px; }
+
+/* BADGE */
+.badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:2px; font-family:'Instrument Mono',monospace; font-size:9px; letter-spacing:1px; text-transform:uppercase; font-weight:500; }
+.badge-pago { background:#e8f5ee; color:#1a5c3a; border:1px solid #c8e8d5; }
+.badge-pendente { background:#fef3e8; color:#b85c00; border:1px solid #fad8b0; }
+.badge-parcial { background:#fef8e8; color:#b8860b; border:1px solid #f0dca0; }
+.badge-nf { background:#e8eef8; color:#1a3a7a; border:1px solid #c0d0e8; }
+
+/* CHARTS */
+.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.chart-wrap { position:relative; height:230px; }
+
+/* EMPTY */
+.empty { text-align:center; padding:50px 20px; color:var(--ink2); }
+.empty-icon { font-size:36px; margin-bottom:14px; opacity:0.3; }
+.empty p { font-size:13px; line-height:1.7; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  transform: translateY(60px);
+  opacity: 0;
+  transition: all 0.25s;
+  z-index: 999;
+  max-width: 300px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,23,18,0.6);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  padding: 20px;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  width: 100%;
+  max-width: 500px;
+  animation: slideUp 0.25s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; margin-bottom:20px; letter-spacing:-0.5px; }
+.modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap; }
+
+/* SECTION GAP */
+.section-gap { margin-top: 18px; }
+.divider { height:1px; background:var(--border); margin:16px 0; grid-column:1/-1; }
+
+/* PRODUTORA CARDS */
+.prod-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); margin-bottom:10px; }
+.prod-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+.prod-name { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; letter-spacing:-0.5px; }
+.prod-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+.prod-stat-val { font-family:'Instrument Mono',monospace; font-size:14px; font-weight:500; color:var(--ink); }
+.prod-stat-lbl { font-family:'Instrument Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink2); margin-top:3px; }
+
+/* META BAR */
+.meta-bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:10px; }
+.meta-bar-fill { height:100%; background:var(--accent2); border-radius:2px; transition:width 0.6s ease; }
+.meta-bar-fill.over { background:var(--gold); }
+
+/* PAYMENT ITEMS */
+.payment-list { display:flex; flex-direction:column; gap:8px; }
+.payment-item { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); font-size:13px; flex-wrap:wrap; gap:8px; }
+.payment-item.urgent { border-left:3px solid var(--accent); }
+.payment-item.soon { border-left:3px solid var(--gold); }
+.payment-item.ok { border-left:3px solid var(--accent2); }
+
+/* FILTER */
+.filter-bar { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.filter-bar input, .filter-bar select { flex:1; min-width:120px; }
+
+/* YEAR TABS */
+.year-tabs { display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+.year-tab { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--ink2); cursor:pointer; font-family:'Instrument Mono',monospace; font-size:11px; letter-spacing:1px; padding:6px 14px; transition:all 0.15s; }
+.year-tab.active, .year-tab:hover { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+
+/* METAS */
+.metas-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.meta-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; display:flex; align-items:center; gap:10px; }
+.meta-item input { width:110px; text-align:right; font-family:'Instrument Mono',monospace; }
+.meta-prod-name { flex:1; font-size:13px; font-weight:500; }
+
+/* OFFLINE BANNER */
+#offline-banner {
+  background: var(--gold);
+  color: #4a3000;
+  text-align: center;
+  padding: 8px;
+  font-family: 'Instrument Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  display: none;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .form-grid { grid-template-columns:1fr; }
+  .charts-grid { grid-template-columns:1fr; }
+  .prod-stats { grid-template-columns:repeat(3,1fr); }
+  header { padding:0 14px; flex-wrap:wrap; height:auto; padding-top:8px; padding-bottom:8px; gap:8px; }
+  nav button { font-size:10px; padding:6px 10px; }
+  main { padding:16px 14px; }
+  .page-title { font-size:26px; }
+  .logo { font-size:16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">⚠ Sem conexão — dados serão sincronizados quando voltar online</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">CONTROLE</div>/div>
+  <div class="login-sub">Gestão de Jobs Audiovisual</div>
+  <button class="btn-google" onclick="loginGoogle()">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
+    Entrar com Google
+  </button>
+  <div class="login-note">Seus dados ficam salvos na nuvem e sincronizados em todos os seus dispositivos.</div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-screen" style="display:none">
+  <div class="spinner"></div>
+  <div style="font-family:'Instrument Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--ink2)">CARREGANDO</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<header>
+  <div class="logo">
+    LENS
+    <span class="logo-tag">Audiovisual</span>
+  </div>
+  <nav>
+    <button class="active" onclick="showPage('novo',this)">+ Novo Job</button>
+    <button onclick="showPage('historico',this)">Histórico</button>
+    <button onclick="showPage('produtoras',this)">Produtoras</button>
+    <button onclick="showPage('financeiro',this)">Financeiro</button>
+    <button onclick="showPage('config',this)">Config</button>
+  </nav>
+  <div class="header-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">—</span>
+    </div>
+    <div class="user-info">
+      <img class="user-avatar" id="user-avatar" src="" alt="">
+      <span id="user-name"></span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ===== NOVO JOB ===== -->
+<div id="page-novo" class="page active">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Novo Job</div>
+      <div class="page-sub">Registre um novo trabalho</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">Dados do Job</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Produtora</label>
+        <input type="text" id="f-produtora" placeholder="Ex: Produtora Alpha" list="prod-list" autocomplete="off">
+        <datalist id="prod-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Nome do Job</label>
+        <input type="text" id="f-job" placeholder="Ex: Comercial Verão 2025">
+      </div>
+      <div class="form-group">
+        <label>Data do Job</label>
+        <input type="date" id="f-data">
+      </div>
+      <div class="form-group">
+        <label>Horário (opcional)</label>
+        <input type="time" id="f-horario">
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>Valor do Job (R$)</label>
+        <input type="number" id="f-valor" placeholder="0,00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Dia do Pagamento</label>
+        <input type="date" id="f-pgto">
+      </div>
+      <div class="form-group">
+        <label>Status do Pagamento</label>
+        <select id="f-status">
+          <option value="pendente">Pendente</option>
+          <option value="pago">Pago</option>
+          <option value="parcial">Parcial</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Horas Trabalhadas</label>
+        <input type="number" id="f-horas" placeholder="Ex: 10" min="0" step="0.5">
+      </div>
+      <div class="form-group full">
+        <div class="toggle-row" onclick="document.getElementById('f-nf').click()">
+          <input type="checkbox" id="f-nf">
+          <label for="f-nf">Emitir Nota Fiscal para este job</label>
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Observações</label>
+        <textarea id="f-obs" rows="2" placeholder="Detalhes adicionais..."></textarea>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="limparForm()">Limpar</button>
+      <button class="btn btn-accent" id="btn-salvar" onclick="salvarJob()">Salvar Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HISTÓRICO ===== -->
+<div id="page-historico" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Histórico</div>
+      <div class="page-sub">Todos os jobs registrados</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-sm" onclick="exportRelatorio()">⬇ Relatório</button>
+    </div>
+  </div>
+  <div id="year-tabs-hist" class="year-tabs"></div>
+  <div class="filter-bar">
+    <input type="text" id="busca" placeholder="🔍 Buscar job ou produtora..." oninput="renderHistorico()">
+    <select id="filtro-status" onchange="renderHistorico()">
+      <option value="">Todos os status</option>
+      <option value="pago">Pago</option>
+      <option value="pendente">Pendente</option>
+      <option value="parcial">Parcial</option>
+    </select>
+    <select id="filtro-prod" onchange="renderHistorico()">
+      <option value="">Todas as produtoras</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Produtora</th><th>Job</th><th>Horário</th>
+            <th>Horas</th><th>R$/h</th><th>Valor</th><th>Pgto</th>
+            <th>Status</th><th>NF</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tabela-historico"></tbody>
+      </table>
+      <div id="empty-hist" class="empty" style="display:none">
+        <div class="empty-icon">🎬</div>
+        <p>Nenhum job registrado.<br>Comece pela aba <strong>Novo Job</strong>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRODUTORAS ===== -->
+<div id="page-produtoras" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Produtoras</div>
+      <div class="page-sub">Desempenho por empresa</div>
+    </div>
+  </div>
+  <div id="year-tabs-prod" class="year-tabs"></div>
+  <div id="lista-produtoras">
+    <div class="empty"><div class="empty-icon">🏢</div><p>Nenhum job ainda.</p></div>
+  </div>
+</div>
+
+<!-- ===== FINANCEIRO ===== -->
+<div id="page-financeiro" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Financeiro</div>
+      <div class="page-sub">Dashboard e metas mensais</div>
+    </div>
+  </div>
+  <div id="year-tabs-fin" class="year-tabs"></div>
+  <div class="stats-grid" id="stats-fin"></div>
+  <div class="card section-gap">
+    <div class="card-label">Pagamentos Próximos</div>
+    <div id="pagamentos-proximos" class="payment-list"></div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Meta do Mês por Produtora</div>
+    <div id="metas-display"></div>
+  </div>
+  <div class="charts-grid section-gap">
+    <div class="card"><div class="card-label">Faturamento Mensal</div><div class="chart-wrap"><canvas id="chart-mensal"></canvas></div></div>
+    <div class="card"><div class="card-label">Status de Pagamentos</div><div class="chart-wrap"><canvas id="chart-status"></canvas></div></div>
+    <div class="card"><div class="card-label">Receita por Produtora</div><div class="chart-wrap"><canvas id="chart-prod"></canvas></div></div>
+    <div class="card"><div class="card-label">Jobs por Mês</div><div class="chart-wrap"><canvas id="chart-dias"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ===== CONFIG ===== -->
+<div id="page-config" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Config</div>
+      <div class="page-sub">Metas e configurações</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">Metas Mensais por Produtora</div>
+    <p style="font-size:12px;color:var(--ink2);margin-bottom:14px;">Valor que deseja faturar por produtora em cada mês.</p>
+    <div id="metas-config" class="metas-grid"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-accent" onclick="salvarMetas()">Salvar Metas</button>
+    </div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Conta</div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <img id="cfg-avatar" src="" style="width:48px;height:48px;border-radius:50%;border:1px solid var(--border)">
+      <div>
+        <div id="cfg-name" style="font-weight:600;font-size:15px;"></div>
+        <div id="cfg-email" style="font-size:12px;color:var(--ink2);margin-top:2px;"></div>
+      </div>
+      <button class="btn btn-outline" style="margin-left:auto" onclick="logout()">Sair da conta</button>
+    </div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Dados</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="exportBackup()">⬇ Backup JSON</button>
+      <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">⬆ Restaurar</button>
+      <button class="btn btn-outline" style="color:var(--accent);border-color:var(--accent)" onclick="limparTudo()">Limpar todos os dados</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="lerBackup(event)">
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <div class="modal-title">Editar Job</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Produtora</label><input type="text" id="e-produtora"></div>
+      <div class="form-group"><label>Nome do Job</label><input type="text" id="e-job"></div>
+      <div class="form-group"><label>Data</label><input type="date" id="e-data"></div>
+      <div class="form-group"><label>Horário</label><input type="time" id="e-horario"></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="number" id="e-valor" step="0.01"></div>
+      <div class="form-group"><label>Dia Pgto</label><input type="date" id="e-pgto"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="e-status">
+          <option value="pendente">Pendente</option>
+          <option value="pago">Pago</option>
+          <option value="parcial">Parcial</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Horas</label><input type="number" id="e-horas" step="0.5"></div>
+      <div class="form-group full">
+        <div class="toggle-row">
+          <input type="checkbox" id="e-nf">
+          <label for="e-nf">Emitir Nota Fiscal</label>
+        </div>
+      </div>
+      <div class="form-group full"><label>Obs</label><textarea id="e-obs" rows="2"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-accent" onclick="salvarEdicao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, setDoc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJTWQKBZNLKp5UZVvpzCoSmG3-1MEPAFU",
+  authDomain: "controle-audiovisual.firebaseapp.com",
+  projectId: "controle-audiovisual",
+  storageBucket: "controle-audiovisual.firebasestorage.app",
+  messagingSenderId: "400845603597",
+  appId: "1:400845603597:web:f1f54e38646280acd0a644"
+};
+
+const fireApp = initializeApp(firebaseConfig);
+const auth    = getAuth(fireApp);
+const db      = getFirestore(fireApp);
+const provider = new GoogleAuthProvider();
+
+// ===== STATE =====
+let jobs = [];
+let metas = {};
+let currentUser = null;
+let unsubJobs = null;
+let editDocId = null;
+let anoAtivo = { hist: new Date().getFullYear(), prod: new Date().getFullYear(), fin: new Date().getFullYear() };
+let charts = {};
+
+// ===== EXPOR FUNÇÕES PARA O HTML =====
+window.loginGoogle = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    toast('Erro ao entrar: ' + e.message, true);
+  }
+};
+
+window.logout = async () => {
+  if (unsubJobs) unsubJobs();
+  await signOut(auth);
+};
+
+// ===== AUTH STATE =====
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('loading-screen').style.display = 'flex';
+
+    // user info
+    document.getElementById('user-name').textContent = user.displayName?.split(' ')[0] || '';
+    document.getElementById('user-avatar').src = user.photoURL || '';
+    document.getElementById('cfg-avatar').src = user.photoURL || '';
+    document.getElementById('cfg-name').textContent = user.displayName || '';
+    document.getElementById('cfg-email').textContent = user.email || '';
+
+    await carregarMetas();
+    iniciarListener();
+  } else {
+    currentUser = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'none';
+    jobs = [];
+  }
+});
+
+// ===== FIRESTORE LISTENER (TEMPO REAL) =====
+function iniciarListener() {
+  if (unsubJobs) unsubJobs();
+  const uid = currentUser.uid;
+  const q = query(collection(db, 'users', uid, 'jobs'), orderBy('criadoEm', 'desc'));
+
+  unsubJobs = onSnapshot(q,
+    snap => {
+      jobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setSyncStatus('synced');
+      atualizarDatalist();
+      const pAtiva = document.querySelector('.page.active')?.id?.replace('page-','');
+      if (pAtiva === 'historico') renderHistorico();
+      if (pAtiva === 'produtoras') renderProdutoras();
+      if (pAtiva === 'financeiro') renderFinanceiro();
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    },
+    err => {
+      setSyncStatus('error');
+      toast('Erro de sincronização: ' + err.message, true);
+    }
+  );
+}
+
+// ===== METAS (salvas no Firestore) =====
+async function carregarMetas() {
+  try {
+    const ref = doc(db, 'users', currentUser.uid, 'config', 'metas');
+    const snap = await getDoc(ref);
+    metas = snap.exists() ? snap.data() : {};
+  } catch(e) { metas = {}; }
+}
+
+window.salvarMetas = async () => {
+  document.querySelectorAll('.meta-input').forEach(inp => {
+    const p = inp.dataset.prod;
+    const v = parseFloat(inp.value) || 0;
+    if (v > 0) metas[p] = v; else delete metas[p];
+  });
+  try {
+    await setDoc(doc(db, 'users', currentUser.uid, 'config', 'metas'), metas);
+    toast('Metas salvas na nuvem!');
+  } catch(e) { toast('Erro ao salvar metas.', true); }
+};
+
+// ===== SALVAR JOB =====
+window.salvarJob = async () => {
+  const produtora = document.getElementById('f-produtora').value.trim();
+  const job       = document.getElementById('f-job').value.trim();
+  const valor     = parseFloat(document.getElementById('f-valor').value) || 0;
+
+  if (!produtora || !job || !valor) { toast('Preencha produtora, job e valor.', true); return; }
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  setSyncStatus('syncing');
+
+  const horas = parseFloat(document.getElementById('f-horas').value) || 0;
+  const obj = {
+    produtora, job,
+    data:    document.getElementById('f-data').value,
+    horario: document.getElementById('f-horario').value,
+    valor, horas,
+    rph:   horas > 0 ? +(valor/horas).toFixed(2) : 0,
+    pgto:   document.getElementById('f-pgto').value,
+    status: document.getElementById('f-status').value,
+    nf:     document.getElementById('f-nf').checked,
+    obs:    document.getElementById('f-obs').value,
+    criadoEm: Date.now()
+  };
+
+  try {
+    await addDoc(collection(db, 'users', currentUser.uid, 'jobs'), obj);
+    limparForm();
+    toast('Job salvo e sincronizado!');
+  } catch(e) {
+    toast('Erro ao salvar: ' + e.message, true);
+    setSyncStatus('error');
+  }
+
+  btn.disabled = false;
+};
+
+// ===== EDITAR =====
+window.abrirEditar = (docId) => {
+  editDocId = docId;
+  const j = jobs.find(x => x.id === docId);
+  if (!j) return;
+  document.getElementById('e-produtora').value  = j.produtora;
+  document.getElementById('e-job').value        = j.job;
+  document.getElementById('e-data').value       = j.data;
+  document.getElementById('e-horario').value    = j.horario || '';
+  document.getElementById('e-valor').value      = j.valor;
+  document.getElementById('e-pgto').value       = j.pgto || '';
+  document.getElementById('e-status').value     = j.status;
+  document.getElementById('e-horas').value      = j.horas;
+  document.getElementById('e-nf').checked       = j.nf;
+  document.getElementById('e-obs').value        = j.obs || '';
+  document.getElementById('modal-editar').classList.add('open');
+};
+
+window.salvarEdicao = async () => {
+  const horas = parseFloat(document.getElementById('e-horas').value) || 0;
+  const valor = parseFloat(document.getElementById('e-valor').value) || 0;
+  const upd = {
+    produtora: document.getElementById('e-produtora').value,
+    job:       document.getElementById('e-job').value,
+    data:      document.getElementById('e-data').value,
+    horario:   document.getElementById('e-horario').value,
+    valor, horas,
+    rph:       horas > 0 ? +(valor/horas).toFixed(2) : 0,
+    pgto:      document.getElementById('e-pgto').value,
+    status:    document.getElementById('e-status').value,
+    nf:        document.getElementById('e-nf').checked,
+    obs:       document.getElementById('e-obs').value
+  };
+  try {
+    setSyncStatus('syncing');
+    await updateDoc(doc(db, 'users', currentUser.uid, 'jobs', editDocId), upd);
+    fecharModal();
+    toast('Job atualizado!');
+  } catch(e) { toast('Erro ao atualizar.', true); }
+};
+
+window.deletar = async (docId) => {
+  if (!confirm('Excluir este job?')) return;
+  try {
+    setSyncStatus('syncing');
+    await deleteDoc(doc(db, 'users', currentUser.uid, 'jobs', docId));
+    toast('Job removido.');
+  } catch(e) { toast('Erro ao excluir.', true); }
+};
+
+// ===== RENDER HISTÓRICO =====
+window.renderHistorico = () => {
+  const busca       = (document.getElementById('busca').value||'').toLowerCase();
+  const filtroSt    = document.getElementById('filtro-status').value;
+  const filtroProd  = document.getElementById('filtro-prod').value;
+
+  const prods = [...new Set(jobs.map(j=>j.produtora))];
+  const sel = document.getElementById('filtro-prod');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas as produtoras</option>' +
+    prods.map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+
+  let lista = jobsDoAno('hist').filter(j => {
+    const b = !busca || j.job.toLowerCase().includes(busca) || j.produtora.toLowerCase().includes(busca);
+    const s = !filtroSt || j.status === filtroSt;
+    const p = !filtroProd || j.produtora === filtroProd;
+    return b && s && p;
+  }).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+
+  const tbody = document.getElementById('tabela-historico');
+  const empty = document.getElementById('empty-hist');
+
+  if (!lista.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  const statusBadge = s => ({
+    pago:     '<span class="badge badge-pago">Pago</span>',
+    pendente: '<span class="badge badge-pendente">Pendente</span>',
+    parcial:  '<span class="badge badge-parcial">Parcial</span>'
+  }[s]||'');
+
+  tbody.innerHTML = lista.map(j => `<tr>
+    <td class="mono">${fmtData(j.data)}</td>
+    <td><strong>${j.produtora}</strong></td>
+    <td>${j.job}</td>
+    <td class="mono">${j.horario||'—'}</td>
+    <td class="mono">${j.horas||'—'}${j.horas?'h':''}</td>
+    <td class="mono">${j.horas>0?'R$'+j.rph.toFixed(0):'—'}</td>
+    <td class="money">R$ ${j.valor.toFixed(2).replace('.',',')}</td>
+    <td class="mono">${fmtData(j.pgto)}</td>
+    <td>${statusBadge(j.status)}</td>
+    <td>${j.nf?'<span class="badge badge-nf">NF</span>':'—'}</td>
+    <td>
+      <div style="display:flex;gap:5px;">
+        <button class="btn btn-outline btn-sm" onclick="abrirEditar('${j.id}')">✏</button>
+        <button class="btn btn-accent btn-sm" onclick="deletar('${j.id}')">✕</button>
+      </div>
+    </td>
+  </tr>`).join('');
+};
+
+// ===== RENDER PRODUTORAS =====
+window.renderProdutoras = () => {
+  const lista = jobsDoAno('prod');
+  const prods = {};
+  lista.forEach(j => {
+    if (!prods[j.produtora]) prods[j.produtora] = {total:0,pago:0,pend:0,dias:0,horas:0};
+    const p = prods[j.produtora];
+    p.total += j.valor; p.dias++; p.horas += j.horas||0;
+    if (j.status==='pago') p.pago += j.valor; else p.pend += j.valor;
+  });
+  const el = document.getElementById('lista-produtoras');
+  if (!Object.keys(prods).length) {
+    el.innerHTML='<div class="empty"><div class="empty-icon">🏢</div><p>Nenhum job neste ano.</p></div>'; return;
+  }
+  el.innerHTML = Object.entries(prods).sort((a,b)=>b[1].total-a[1].total).map(([nome,p])=>{
+    const meta = metas[nome]||0;
+    const pct  = meta>0 ? Math.min((p.total/meta)*100,100) : 0;
+    const over = meta>0 && p.total>=meta;
+    const rph  = p.horas>0 ? 'R$'+(p.total/p.horas).toFixed(0)+'/h' : '—';
+    return `
+    <div class="prod-card">
+      <div class="prod-header">
+        <div class="prod-name">${nome}</div>
+        ${meta>0?`<span class="badge ${over?'badge-pago':'badge-pendente'}">${over?'✓ Meta atingida':'Em progresso'}</span>`:''}
+      </div>
+      <div class="prod-stats">
+        <div><div class="prod-stat-val">R$${p.total.toFixed(0)}</div><div class="prod-stat-lbl">Faturado</div></div>
+        <div><div class="prod-stat-val" style="color:var(--accent2)">R$${p.pago.toFixed(0)}</div><div class="prod-stat-lbl">Recebido</div></div>
+        <div><div class="prod-stat-val" style="color:var(--accent)">R$${p.pend.toFixed(0)}</div><div class="prod-stat-lbl">Pendente</div></div>
+        <div><div class="prod-stat-val">${p.dias}</div><div class="prod-stat-lbl">Dias</div></div>
+        <div><div class="prod-stat-val">${rph}</div><div class="prod-stat-lbl">R$/Hora</div></div>
+      </div>
+      ${meta>0?`
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-family:'Instrument Mono',monospace;font-size:10px;color:var(--ink2);margin-bottom:4px">
+          <span>${pct.toFixed(0)}% da meta (R$${meta.toLocaleString('pt-BR')})</span>
+          <span>${over?'✓':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR')}</span>
+        </div>
+        <div class="meta-bar-track"><div class="meta-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+};
+
+// ===== RENDER FINANCEIRO =====
+window.renderFinanceiro = () => {
+  const lista = jobsDoAno('fin');
+  const total  = lista.reduce((s,j)=>s+j.valor,0);
+  const pago   = lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const pend   = lista.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  const horas  = lista.reduce((s,j)=>s+(j.horas||0),0);
+  const ticket = lista.length ? total/lista.length : 0;
+
+  document.getElementById('stats-fin').innerHTML = `
+    <div class="stat-card stat-ink"><div class="stat-label">Faturamento ${anoAtivo.fin}</div><div class="stat-value">R$${total.toFixed(0)}</div><div class="stat-sub">${lista.length} jobs · ${horas}h</div></div>
+    <div class="stat-card stat-green"><div class="stat-label">Recebido</div><div class="stat-value">R$${pago.toFixed(0)}</div><div class="stat-sub">${total>0?((pago/total)*100).toFixed(0):0}% do total</div></div>
+    <div class="stat-card stat-accent"><div class="stat-label">A Receber</div><div class="stat-value">R$${pend.toFixed(0)}</div><div class="stat-sub">pendente / parcial</div></div>
+    <div class="stat-card stat-gold"><div class="stat-label">Ticket Médio</div><div class="stat-value">R$${ticket.toFixed(0)}</div><div class="stat-sub">por job</div></div>
+  `;
+
+  // Pagamentos próximos
+  const hoje = new Date();
+  const prox = jobs.filter(j=>j.pgto&&j.status!=='pago').map(j=>{
+    const diff = Math.ceil((new Date(j.pgto+'T00:00:00')-hoje)/86400000);
+    return {...j,diff};
+  }).sort((a,b)=>a.diff-b.diff).slice(0,6);
+
+  const pgEl = document.getElementById('pagamentos-proximos');
+  pgEl.innerHTML = prox.length ? prox.map(j=>{
+    const cls = j.diff<0?'urgent':j.diff<=3?'urgent':j.diff<=7?'soon':'ok';
+    const lbl = j.diff<0?`${Math.abs(j.diff)}d atrasado`:j.diff===0?'Hoje':`em ${j.diff}d`;
+    return `<div class="payment-item ${cls}">
+      <div><strong>${j.produtora}</strong> — ${j.job}<div style="font-size:11px;color:var(--ink2);margin-top:2px">${fmtData(j.pgto)}</div></div>
+      <div style="text-align:right"><div class="money">R$ ${j.valor.toFixed(2).replace('.',',')}</div><div style="font-size:11px;color:var(--ink2);margin-top:2px">${lbl}</div></div>
+    </div>`;
+  }).join('') : '<div class="empty" style="padding:16px"><p>Nenhum pagamento pendente.</p></div>';
+
+  // Metas do mês
+  const mesAtual = new Date().toISOString().slice(0,7);
+  const jobsMes  = jobs.filter(j=>j.data&&j.data.startsWith(mesAtual));
+  const prodsComMeta = Object.keys(metas);
+  const metasEl = document.getElementById('metas-display');
+  if (!prodsComMeta.length) {
+    metasEl.innerHTML='<p style="font-size:12px;color:var(--ink2)">Configure as metas em <strong>Config</strong>.</p>';
+  } else {
+    metasEl.innerHTML='<div class="metas-grid">'+prodsComMeta.map(p=>{
+      const fat  = jobsMes.filter(j=>j.produtora===p).reduce((s,j)=>s+j.valor,0);
+      const meta = metas[p]||0;
+      const pct  = meta>0?Math.min((fat/meta)*100,100):0;
+      const over = fat>=meta;
+      return `<div class="meta-item">
+        <div style="flex:1">
+          <div class="meta-prod-name">${p}</div>
+          <div style="font-size:11px;color:var(--ink2);margin-top:2px">R$${fat.toFixed(0)} / R$${meta.toFixed(0)}</div>
+          <div class="meta-bar-track" style="margin-top:8px"><div class="meta-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+        </div>
+        <div style="min-width:52px;text-align:right">
+          <div style="font-family:'Instrument Mono',monospace;font-size:13px;color:${over?'var(--accent2)':'var(--accent)'}">${pct.toFixed(0)}%</div>
+          <div style="font-size:10px;color:var(--ink2);margin-top:2px">${over?'✓':'-R$'+(meta-fat).toFixed(0)}</div>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
+  buildCharts(lista);
+};
+
+// ===== CHARTS =====
+function buildCharts(lista) {
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mensal={}, diasMes={}, prodMap={};
+  lista.forEach(j=>{
+    if(!j.data) return;
+    const m=j.data.substring(0,7);
+    mensal[m]=(mensal[m]||0)+j.valor;
+    diasMes[m]=(diasMes[m]||0)+1;
+    prodMap[j.produtora]=(prodMap[j.produtora]||0)+j.valor;
+  });
+  const meses=Object.keys(mensal).sort();
+  const mkLabel=m=>MESES[parseInt(m.split('-')[1])-1];
+  const cores=['rgba(26,23,18,0.8)','rgba(200,64,26,0.8)','rgba(26,92,58,0.8)','rgba(184,134,11,0.8)','rgba(91,141,239,0.8)','rgba(180,100,220,0.8)'];
+
+  drawChart('chart-mensal','bar',meses.map(mkLabel),[{label:'R$',data:meses.map(m=>mensal[m]),backgroundColor:'rgba(26,23,18,0.8)',borderRadius:3}]);
+  const p1=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const p2=lista.filter(j=>j.status==='pendente').reduce((s,j)=>s+j.valor,0);
+  const p3=lista.filter(j=>j.status==='parcial').reduce((s,j)=>s+j.valor,0);
+  drawChart('chart-status','doughnut',['Pago','Pendente','Parcial'],[{data:[p1,p2,p3],backgroundColor:['rgba(26,92,58,0.8)','rgba(184,134,11,0.7)','rgba(200,64,26,0.8)'],borderWidth:0}]);
+  const pKeys=Object.keys(prodMap).sort((a,b)=>prodMap[b]-prodMap[a]).slice(0,6);
+  drawChart('chart-prod','bar',pKeys,[{label:'R$',data:pKeys.map(p=>prodMap[p]),backgroundColor:pKeys.map((_,i)=>cores[i%cores.length]),borderRadius:3}]);
+  drawChart('chart-dias','bar',meses.map(mkLabel),[{label:'Jobs',data:meses.map(m=>diasMes[m]||0),backgroundColor:'rgba(26,92,58,0.7)',borderRadius:3}]);
+}
+
+function drawChart(id,type,labels,datasets) {
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id);
+  if(!ctx) return;
+  charts[id]=new Chart(ctx.getContext('2d'),{type,data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:type==='doughnut',labels:{color:'#6b6560',font:{family:'Instrument Sans',size:11}}}},
+    scales:type!=='doughnut'?{
+      x:{ticks:{color:'#6b6560',font:{family:'Instrument Mono',size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{ticks:{color:'#6b6560',font:{family:'Instrument Mono',size:10}},grid:{color:'rgba(0,0,0,0.06)'}}
+    }:undefined
+  }});
+}
+
+// ===== CONFIG / METAS =====
+window.renderConfigMetas = () => {
+  const prods=[...new Set(jobs.map(j=>j.produtora))];
+  const el=document.getElementById('metas-config');
+  if(!prods.length){el.innerHTML='<p style="font-size:12px;color:var(--ink2)">Registre jobs primeiro.</p>';return;}
+  el.innerHTML=prods.map(p=>`
+    <div class="meta-item">
+      <div class="meta-prod-name">${p}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-family:'Instrument Mono',monospace;font-size:12px;color:var(--ink2)">R$</span>
+        <input type="number" class="meta-input" data-prod="${p}" value="${metas[p]||''}" placeholder="0,00" min="0" step="100" style="width:110px;text-align:right;font-family:'Instrument Mono',monospace">
+      </div>
+    </div>`).join('');
+};
+
+// ===== EXPORT =====
+window.exportCSV = () => {
+  if(!jobs.length){toast('Nenhum job.',true);return;}
+  const h=['Data','Produtora','Job','Horario','Horas','R$/H','Valor','Pgto','Status','NF'];
+  const rows=jobs.map(j=>[j.data,j.produtora,j.job,j.horario||'',j.horas||0,j.horas>0?j.rph.toFixed(2):'',j.valor.toFixed(2),j.pgto||'',j.status,j.nf?'Sim':'Não']);
+  download('lens_jobs.csv',[h,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n'),'text/csv');
+  toast('CSV exportado!');
+};
+
+window.exportRelatorio = () => {
+  if(!jobs.length){toast('Nenhum job.',true);return;}
+  const total=jobs.reduce((s,j)=>s+j.valor,0);
+  const pago=jobs.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório LENS</title>
+  <style>body{font-family:Helvetica,Arial,sans-serif;max-width:900px;margin:40px auto;color:#1a1712;background:#f2ede6;padding:0 20px}
+  h1{font-size:32px;letter-spacing:-1px;margin-bottom:4px}
+  .sub{color:#6b6560;font-size:12px;margin-bottom:24px}
+  .resumo{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+  .r{background:white;border:1px solid #ddd8cf;border-radius:4px;padding:14px 18px;flex:1;min-width:140px}
+  .r-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#6b6560;margin-bottom:6px}
+  .r-v{font-size:22px;font-weight:700}
+  table{width:100%;border-collapse:collapse;background:white;border-radius:4px;font-size:12px}
+  th{background:#1a1712;color:#f2ede6;padding:9px 12px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;text-align:left}
+  td{padding:10px 12px;border-bottom:1px solid #eee}tr:last-child td{border-bottom:none}</style></head><body>
+  <h1>LENS — Relatório</h1><p class="sub">Gerado em ${new Date().toLocaleDateString('pt-BR')} · ${jobs.length} jobs</p>
+  <div class="resumo">
+    <div class="r"><div class="r-l">Faturamento</div><div class="r-v">R$ ${total.toFixed(2).replace('.',',')}</div></div>
+    <div class="r"><div class="r-l">Recebido</div><div class="r-v" style="color:#1a5c3a">R$ ${pago.toFixed(2).replace('.',',')}</div></div>
+    <div class="r"><div class="r-l">A Receber</div><div class="r-v" style="color:#c8401a">R$ ${(total-pago).toFixed(2).replace('.',',')}</div></div>
+    <div class="r"><div class="r-l">Jobs</div><div class="r-v">${jobs.length}</div></div>
+  </div>
+  <table><thead><tr><th>Data</th><th>Produtora</th><th>Job</th><th>Horas</th><th>Valor</th><th>Pgto</th><th>Status</th><th>NF</th></tr></thead>
+  <tbody>${jobs.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(j=>`<tr>
+    <td>${fmtData(j.data)}</td><td><strong>${j.produtora}</strong></td><td>${j.job}</td>
+    <td>${j.horas||'—'}${j.horas?'h':''}</td><td><strong>R$ ${j.valor.toFixed(2).replace('.',',')}</strong></td>
+    <td>${fmtData(j.pgto)}</td><td>${j.status}</td><td>${j.nf?'✓':'—'}</td></tr>`).join('')}
+  </tbody></table></body></html>`;
+  download('relatorio_lens.html',html,'text/html');
+  toast('Relatório gerado!');
+};
+
+window.exportBackup = () => {
+  download('lens_backup.json',JSON.stringify({jobs,metas},null,2),'application/json');
+  toast('Backup exportado!');
+};
+
+window.lerBackup = (e) => {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.jobs && Array.isArray(data.jobs)){
+        setSyncStatus('syncing');
+        for(const j of data.jobs){
+          const {id,...rest}=j;
+          await addDoc(collection(db,'users',currentUser.uid,'jobs'),{...rest,criadoEm:rest.criadoEm||Date.now()});
+        }
+        toast(`${data.jobs.length} jobs importados!`);
+      }
+    }catch{toast('Arquivo inválido.',true);}
+  };
+  reader.readAsText(file);
+};
+
+window.limparTudo = async () => {
+  if(!confirm('Apagar TODOS os dados?\nEsta ação não pode ser desfeita.')) return;
+  try {
+    setSyncStatus('syncing');
+    const q=query(collection(db,'users',currentUser.uid,'jobs'));
+    const snap=await new Promise(res=>onSnapshot(q,res));
+    for(const d of snap.docs) await deleteDoc(d.ref);
+    toast('Dados apagados.');
+  }catch(e){toast('Erro ao limpar.',true);}
+};
+
+// ===== NAVEGAÇÃO =====
+window.showPage = (name, btn) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='historico'){buildYearTabs('hist');renderHistorico();}
+  if(name==='produtoras'){buildYearTabs('prod');renderProdutoras();}
+  if(name==='financeiro'){buildYearTabs('fin');renderFinanceiro();}
+  if(name==='config'){renderConfigMetas();}
+};
+
+// ===== ANOS =====
+function getAnos(){
+  const anos=[...new Set(jobs.map(j=>j.data?j.data.split('-')[0]:null).filter(Boolean))];
+  if(!anos.length) anos.push(String(new Date().getFullYear()));
+  return anos.sort().reverse();
+}
+
+function buildYearTabs(page){
+  const anos=getAnos();
+  const el=document.getElementById(`year-tabs-${page}`);
+  if(!el) return;
+  el.innerHTML=anos.map(a=>`<button class="year-tab ${a==anoAtivo[page]?'active':''}" onclick="setAno('${page}',${a},this)">${a}</button>`).join('');
+}
+
+window.setAno=(page,ano,btn)=>{
+  anoAtivo[page]=ano;
+  document.querySelectorAll(`#year-tabs-${page} .year-tab`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(page==='hist') renderHistorico();
+  if(page==='prod') renderProdutoras();
+  if(page==='fin')  renderFinanceiro();
+};
+
+function jobsDoAno(page){
+  return jobs.filter(j=>j.data&&j.data.startsWith(String(anoAtivo[page])));
+}
+
+// ===== UTILS =====
+window.limparForm = () => {
+  ['f-produtora','f-job','f-horario','f-obs'].forEach(id=>document.getElementById(id).value='');
+  ['f-valor','f-horas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-pgto').value='';
+  document.getElementById('f-status').value='pendente';
+  document.getElementById('f-nf').checked=false;
+};
+
+window.fecharModal = () => document.getElementById('modal-editar').classList.remove('open');
+
+function atualizarDatalist(){
+  const prods=[...new Set(jobs.map(j=>j.produtora))];
+  document.getElementById('prod-list').innerHTML=prods.map(p=>`<option value="${p}">`).join('');
+}
+
+function fmtData(d){ return d?d.split('-').reverse().join('/'):'—'; }
+
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  const map={synced:['synced','Sincronizado'],syncing:['syncing','Sincronizando...'],error:['error','Erro de sync']};
+  const [cls,txt]=map[s]||['','—'];
+  dot.className='sync-dot'+( cls?' '+cls:'');
+  lbl.textContent=txt;
+}
+
+function download(filename,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=filename; a.click();
+}
+
+window.toast = (msg,err=false)=>{
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=err?'var(--accent)':'var(--ink)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+};
+
+// Offline detection
+window.addEventListener('online',  ()=>{ document.getElementById('offline-banner').style.display='none'; setSyncStatus('synced'); });
+window.addEventListener('offline', ()=>{ document.getElementById('offline-banner').style.display='block'; setSyncStatus('error'); });
+
+// Init form date
+document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+
+</script>
+</body>
+</html>
