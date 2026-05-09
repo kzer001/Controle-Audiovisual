@@ -149,7 +149,7 @@ main { max-width: 1140px; margin: 0 auto; padding: 24px 18px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-group.full { grid-column: 1/-1; }
-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink3); }
+label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--ink2); }
 input, select, textarea {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   color: var(--ink); font-family: 'Varela Round', sans-serif; font-size: 13px;
@@ -165,13 +165,15 @@ select option { background: var(--surface); }
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px; background: var(--surface);
   border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;
+  user-select: none;
 }
 .toggle-row input[type="checkbox"] {
-  width: 15px; height: 15px; min-width: 15px;
+  width: 16px; height: 16px; min-width: 16px;
   cursor: pointer; accent-color: var(--ink2);
   appearance: auto; margin: 0; padding: 0; flex-shrink: 0;
+  pointer-events: none;
 }
-.toggle-row span { font-size: 13px; color: var(--ink); cursor: pointer; user-select: none; }
+.toggle-row span { font-size: 13px; color: var(--ink); cursor: pointer; }
 
 /* MULTI DATE PICKER */
 .mdc-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -432,7 +434,7 @@ tr:hover td { background: var(--surface); }
     <div class="gcal-status">
       <div class="gcal-dot" id="gcal-dot"></div>
       <span style="font-size:11px;color:var(--ink3)" id="gcal-lbl">Agenda desconectada</span>
-      <button class="btn btn-ghost btn-sm" onclick="connectGCal()">Conectar</button>
+      <button class="btn btn-ghost btn-sm" id="btn-conectar-novo" onclick="connectGCal()">Conectar</button>
     </div>
   </div>
   <div class="card">
@@ -499,7 +501,7 @@ tr:hover td { background: var(--surface); }
   <div class="page-header">
     <div><div class="page-title">Histórico</div><div class="page-sub">Todos os jobs</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" id="btn-ocultar-hist" onclick="toggleValoresHist()">&#128065; Ocultar valores</button>
+      <button class="btn btn-ghost btn-sm" id="btn-ocultar-hist" onclick="toggleValoresHist()">&#128065; Mostrar valores</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">&#8595; CSV</button>
       <button class="btn btn-sm" onclick="exportRelatorio()">&#8595; Relatório</button>
     </div>
@@ -546,7 +548,7 @@ tr:hover td { background: var(--surface); }
 <div id="page-produtoras" class="page">
   <div class="page-header">
     <div><div class="page-title">Produtoras</div><div class="page-sub">Desempenho por empresa</div></div>
-    <button class="btn btn-ghost btn-sm" id="btn-ocultar-prod" onclick="toggleValoresProd()">&#128065; Ocultar valores</button>
+    <button class="btn btn-ghost btn-sm" id="btn-ocultar-prod" onclick="toggleValoresProd()">&#128065; Mostrar valores</button>
   </div>
   <div id="ytabs-prod" class="year-tabs"></div>
   <!-- Filtro de meses -->
@@ -560,7 +562,7 @@ tr:hover td { background: var(--surface); }
 <div id="page-financeiro" class="page">
   <div class="page-header">
     <div><div class="page-title">Financeiro</div><div class="page-sub">Dashboard e metas</div></div>
-    <button class="btn btn-ghost btn-sm" id="btn-ocultar" onclick="toggleValores()">&#128065; Ocultar valores</button>
+    <button class="btn btn-ghost btn-sm" id="btn-ocultar" onclick="toggleValores()">&#128065; Mostrar valores</button>
   </div>
   <div id="ytabs-fin" class="year-tabs"></div>
   <div class="stats-grid" id="stats-fin"></div>
@@ -955,11 +957,15 @@ window.renderHistorico=()=>{
     +'<button class="btn btn-danger btn-sm" onclick="deletar(\''+j.id+'\')">✕</button>'
     +'</div></td></tr>'
   ).join('');
+  // Aplica blur se valores ocultos
+  if(valoresHistOcultos) {
+    document.querySelectorAll('.val-hist').forEach(el => { el.style.filter='blur(6px)'; el.style.userSelect='none'; });
+  }
 };
 
 // PRODUTORAS
 let mesesFiltro = []; // meses selecionados no filtro (vazio = todos)
-let valoresProdOcultos = false;
+let valoresProdOcultos = true;
 
 window.toggleValoresProd = () => {
   valoresProdOcultos = !valoresProdOcultos;
@@ -1263,7 +1269,7 @@ async function criarEventos(job){
 }
 
 // OCULTAR VALORES HISTÓRICO
-let valoresHistOcultos = false;
+let valoresHistOcultos = true;
 window.toggleValoresHist = () => {
   valoresHistOcultos = !valoresHistOcultos;
   const btn = document.getElementById('btn-ocultar-hist');
@@ -1279,8 +1285,11 @@ function setGCalUI(on){
   ['gcal-lbl','gcal-lbl2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=on?'Agenda conectada':'Desconectado';});
   const btnSync=document.getElementById('btn-sync-hist');
   if(btnSync)btnSync.style.display=on?'inline-flex':'none';
-  const btnConectar=document.getElementById('btn-conectar-agenda');
-  if(btnConectar)btnConectar.style.display=on?'none':'inline-flex';
+  // Esconde botões de conectar após conectar
+  ['btn-conectar-agenda','btn-conectar-novo'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b)b.style.display=on?'none':'inline-flex';
+  });
 }
 
 window.sincronizarHistorico=async(silencioso=false)=>{
@@ -1340,7 +1349,7 @@ window.sincronizarHistorico=async(silencioso=false)=>{
 };
 
 // OCULTAR VALORES
-let valoresOcultos = false;
+let valoresOcultos = true;
 window.toggleValores = () => {
   valoresOcultos = !valoresOcultos;
   const btn = document.getElementById('btn-ocultar');
