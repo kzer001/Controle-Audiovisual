@@ -296,10 +296,47 @@ tr:hover td { background: var(--surface); }
   .charts-grid { grid-template-columns: 1fr; }
   .prod-stats  { grid-template-columns: repeat(3, 1fr); }
   .metas-grid  { grid-template-columns: 1fr; }
-  header       { padding: 0 12px; flex-wrap: wrap; height: auto; padding-top: 8px; padding-bottom: 8px; }
-  nav button   { font-size: 10px; padding: 6px 8px; }
-  main         { padding: 14px 12px; }
-  .page-title  { font-size: 22px; }
+  .page-title  { font-size: 20px; }
+  main         { padding: 14px 12px 80px 12px; }
+
+  /* Header compacto no mobile */
+  header { padding: 0 12px; height: auto; flex-wrap: wrap; }
+  .logo  { padding: 10px 0 6px; }
+  .user-name, .sync-dot, .btn-header { display: none; }
+  .btn-close { font-size: 10px; padding: 4px 8px; }
+  .header-right { gap: 6px; padding-bottom: 6px; }
+
+  /* Nav vira barra inferior no mobile */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1a1a1a; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around;
+    padding: 6px 0 8px; z-index: 100; flex-wrap: nowrap;
+  }
+  nav button {
+    flex: 1; font-size: 9px; padding: 6px 4px;
+    border-bottom: none; border-top: 2px solid transparent;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  nav button.active { border-top-color: var(--ink); border-bottom: none; }
+
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .gcal-status { flex-wrap: wrap; }
+  .prod-card   { padding: 14px; }
+  .card        { padding: 14px; }
+  .modal       { padding: 18px; }
+  .filter-bar  { gap: 6px; }
+  .filter-bar input, .filter-bar select { min-width: 100px; }
+  .table-wrap  { font-size: 12px; }
+  td, th       { padding: 8px 8px; }
+}
+
+@media(max-width:480px) {
+  .stats-grid  { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-val    { font-size: 20px; }
+  .prod-stats  { grid-template-columns: repeat(2, 1fr); }
+  .page-title  { font-size: 18px; }
+  .year-tab    { font-size: 10px; padding: 4px 10px; }
 }
 </style>
 </head>
@@ -487,6 +524,7 @@ tr:hover td { background: var(--surface); }
 <div id="page-financeiro" class="page">
   <div class="page-header">
     <div><div class="page-title">Financeiro</div><div class="page-sub">Dashboard e metas</div></div>
+    <button class="btn btn-ghost btn-sm" id="btn-ocultar" onclick="toggleValores()">&#128065; Ocultar valores</button>
   </div>
   <div id="ytabs-fin" class="year-tabs"></div>
   <div class="stats-grid" id="stats-fin"></div>
@@ -911,10 +949,10 @@ window.renderFinanceiro=()=>{
   const horas=lista.reduce((s,j)=>s+(j.horas||0),0);
   const ticket=lista.length?total/lista.length:0;
   document.getElementById('stats-fin').innerHTML=
-    '<div class="stat-card"><div class="stat-lbl">Faturamento '+ano.fin+'</div><div class="stat-val">R$'+total.toFixed(0)+'</div><div class="stat-sub">'+lista.length+' jobs · '+horas.toFixed(0)+'h</div></div>'
-    +'<div class="stat-card"><div class="stat-lbl">Recebido</div><div class="stat-val">R$'+pago.toFixed(0)+'</div><div class="stat-sub">'+(total>0?((pago/total)*100).toFixed(0):0)+'%</div></div>'
-    +'<div class="stat-card"><div class="stat-lbl">A receber</div><div class="stat-val">R$'+pend.toFixed(0)+'</div><div class="stat-sub">pendente</div></div>'
-    +'<div class="stat-card"><div class="stat-lbl">Ticket médio</div><div class="stat-val">R$'+ticket.toFixed(0)+'</div><div class="stat-sub">por job</div></div>';
+    '<div class="stat-card"><div class="stat-lbl">Faturamento '+ano.fin+'</div><div class="stat-val val-ocultar">R$'+total.toFixed(0)+'</div><div class="stat-sub val-ocultar">'+lista.length+' jobs · '+horas.toFixed(0)+'h</div></div>'
+    +'<div class="stat-card"><div class="stat-lbl">Recebido</div><div class="stat-val val-ocultar">R$'+pago.toFixed(0)+'</div><div class="stat-sub val-ocultar">'+(total>0?((pago/total)*100).toFixed(0):0)+'%</div></div>'
+    +'<div class="stat-card"><div class="stat-lbl">A receber</div><div class="stat-val val-ocultar">R$'+pend.toFixed(0)+'</div><div class="stat-sub val-ocultar">pendente</div></div>'
+    +'<div class="stat-card"><div class="stat-lbl">Ticket médio</div><div class="stat-val val-ocultar">R$'+ticket.toFixed(0)+'</div><div class="stat-sub val-ocultar">por job</div></div>';
 
   const mes=new Date().toISOString().slice(0,7);
   const jMes=jobs.filter(j=>j.data?.startsWith(mes)&&j.status!=='pago');
@@ -932,7 +970,7 @@ window.renderFinanceiro=()=>{
       return '<div class="payment-item '+cls+'">'
         +'<div><strong>'+prod+'</strong><div style="font-size:11px;color:var(--ink3);margin-top:2px">'+(prox?fmtD(prox.pgto):'')+' · '+lbl+'</div></div>'
         +'<div style="display:flex;align-items:center;gap:10px">'
-        +'<div style="text-align:right"><div class="money">R$ '+val.toFixed(2).replace('.',',')+'</div><div style="font-size:10px;color:var(--ink3)">pendente</div></div>'
+        +'<div style="text-align:right"><div class="money val-ocultar">R$ '+val.toFixed(2).replace('.',',')+'</div><div style="font-size:10px;color:var(--ink3)">pendente</div></div>'
         +'<button class="btn btn-ghost btn-sm" onclick="darBaixaProd(\''+prod+'\')">✓ Baixa</button>'
         +'</div></div>';
     }).join('');
@@ -945,14 +983,16 @@ window.renderFinanceiro=()=>{
     const fatMes=p=>jobs.filter(j=>j.data?.startsWith(mes)&&j.produtora===p).reduce((s,j)=>s+j.valor,0);
     metasEl.innerHTML='<div class="metas-grid">'+prodsComMeta.map(p=>{
       const fat=fatMes(p),meta=metas[p]||0,pct=meta>0?Math.min((fat/meta)*100,100):0,over=fat>=meta;
+      const cor=over?'#4caf7d':'#e05c5c';
       return '<div class="meta-item"><div style="flex:1"><div class="meta-prod-name">'+p+'</div>'
-        +'<div style="font-size:11px;color:var(--ink3);margin-top:2px">R$'+fat.toFixed(0)+' / R$'+meta.toFixed(0)+'</div>'
-        +'<div class="meta-bar-track" style="margin-top:8px"><div class="meta-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div></div>'
-        +'<div style="min-width:48px;text-align:right"><div style="font-size:13px;color:'+(over?'#7c7':'var(--ink2)')+'">'+pct.toFixed(0)+'%</div>'
-        +'<div style="font-size:10px;color:var(--ink3);margin-top:2px">'+(over?'✓':'-R$'+(meta-fat).toFixed(0))+'</div></div></div>';
+        +'<div class="val-ocultar" style="font-size:11px;color:var(--ink3);margin-top:2px">R$'+fat.toFixed(0)+' / R$'+meta.toFixed(0)+'</div>'
+        +'<div class="meta-bar-track" style="margin-top:8px"><div class="meta-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%;background:'+cor+'"></div></div></div>'
+        +'<div style="min-width:52px;text-align:right"><div class="val-ocultar" style="font-size:13px;font-weight:700;color:'+cor+'">'+pct.toFixed(0)+'%</div>'
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:2px">'+(over?'✓ Meta':'-R$'+(meta-fat).toFixed(0))+'</div></div></div>';
     }).join('')+'</div>';
   }
   buildCharts(lista);
+  setTimeout(aplicarOcultarValores, 50);
 };
 
 // CHARTS
@@ -976,16 +1016,16 @@ function buildCharts(lista){
       y:{ticks:{color:'#555',font:{family:'Varela Round',size:10}},grid:{color:'#222'},border:{display:false}}
     }
   };
-  drawChart('ch-mensal','bar',meses.map(lbl),[{data:meses.map(m=>mensal[m]),backgroundColor:'#444',borderRadius:2,barThickness:14}],base);
+  drawChart('ch-mensal','bar',meses.map(lbl),[{data:meses.map(m=>mensal[m]),backgroundColor:'#4e8ef7',borderRadius:2,barThickness:14}],base);
   const p1=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
   const p2=lista.filter(j=>j.status==='pendente').reduce((s,j)=>s+j.valor,0);
   const p3=lista.filter(j=>j.status==='parcial').reduce((s,j)=>s+j.valor,0);
-  drawChart('ch-status','doughnut',['Pago','Pendente','Parcial'],[{data:[p1,p2,p3],backgroundColor:['#555','#333','#666'],borderWidth:0,hoverOffset:3}],
+  drawChart('ch-status','doughnut',['Pago','Pendente','Parcial'],[{data:[p1,p2,p3],backgroundColor:['#4caf7d','#f7c948','#e05c5c'],borderWidth:0,hoverOffset:3}],
     {...base,plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#888',font:{family:'Varela Round',size:10},boxWidth:10,padding:14}}},cutout:'65%',scales:undefined});
-  const CORES=['#555','#666','#777','#444','#888','#333'];
+  const CORES=['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e'];
   const pKeys=Object.keys(prodM).sort((a,b)=>prodM[b]-prodM[a]).slice(0,6);
   drawChart('ch-prod','bar',pKeys,[{data:pKeys.map(p=>prodM[p]),backgroundColor:pKeys.map((_,i)=>CORES[i%CORES.length]),borderRadius:2,barThickness:14}],base);
-  drawChart('ch-dias','bar',meses.map(lbl),[{data:meses.map(m=>diasM[m]||0),backgroundColor:'#444',borderRadius:2,barThickness:14}],base);
+  drawChart('ch-dias','bar',meses.map(lbl),[{data:meses.map(m=>diasM[m]||0),backgroundColor:'#a47cf7',borderRadius:2,barThickness:14}],base);
 }
 function drawChart(id,type,labels,datasets,options){
   if(charts[id])charts[id].destroy();
@@ -1103,6 +1143,21 @@ window.sincronizarHistorico=async(silencioso=false)=>{
     if(!silencioso)toast('Erro: '+e.message,true);
   }
 };
+
+// OCULTAR VALORES
+let valoresOcultos = false;
+window.toggleValores = () => {
+  valoresOcultos = !valoresOcultos;
+  const btn = document.getElementById('btn-ocultar');
+  if(btn) btn.innerHTML = valoresOcultos ? '&#128065; Mostrar valores' : '&#128065; Ocultar valores';
+  aplicarOcultarValores();
+};
+function aplicarOcultarValores(){
+  document.querySelectorAll('.val-ocultar').forEach(el => {
+    el.style.filter = valoresOcultos ? 'blur(6px)' : 'none';
+    el.style.userSelect = valoresOcultos ? 'none' : '';
+  });
+}
 
 // CONFIG
 window.renderConfigMetas=()=>{
