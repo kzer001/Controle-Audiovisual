@@ -283,7 +283,21 @@ tr:hover td { background: var(--surface); }
 .meta-bar-fill  { height: 100%; background: var(--ink2); border-radius: 2px; transition: width .6s ease; }
 .meta-bar-fill.over { background: #7c7; }
 
-/* PAYMENT ITEMS */
+/* MODAL DETALHE JOB */
+.job-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.job-detail-row:last-child { border-bottom: none; }
+.job-detail-lbl { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--ink3); }
+.job-detail-val { color: var(--ink); font-size: 14px; }
+
+/* RANGE FILTER */
+.range-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.range-filter label { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--ink3); white-space: nowrap; }
+.range-filter input[type="date"] { flex: 1; min-width: 130px; font-size: 12px; padding: 6px 10px; }
+.range-filter .sep { color: var(--ink3); font-size: 12px; }
+
+/* ROW CLICÁVEL */
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--surface); }
 .payment-list { display: flex; flex-direction: column; gap: 8px; }
 .payment-item {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
@@ -507,6 +521,14 @@ tr:hover td { background: var(--surface); }
     </div>
   </div>
   <div id="ytabs-hist" class="year-tabs"></div>
+  <div class="range-filter">
+    <label>De</label>
+    <input type="date" id="hist-range-de" onchange="renderHistorico()">
+    <span class="sep">—</span>
+    <label>Até</label>
+    <input type="date" id="hist-range-ate" onchange="renderHistorico()">
+    <button class="btn btn-ghost btn-sm" onclick="limparRangeHist()">Limpar</button>
+  </div>
   <div class="filter-bar">
     <input type="text" id="busca" placeholder="Buscar..." oninput="renderHistorico()">
     <select id="f-filt-status" onchange="renderHistorico()">
@@ -575,10 +597,21 @@ tr:hover td { background: var(--surface); }
     <div id="metas-display"></div>
   </div>
   <div class="charts-grid section-gap">
-    <div class="card"><div class="card-label">Faturamento mensal</div><div class="chart-wrap"><canvas id="ch-mensal"></canvas></div></div>
-    <div class="card"><div class="card-label">Status de pagamentos</div><div class="chart-wrap"><canvas id="ch-status"></canvas></div></div>
+    <div class="card">
+      <div class="card-label">Faturamento mensal</div>
+      <div class="range-filter">
+        <label>De</label>
+        <input type="date" id="ch-range-de" onchange="renderFinanceiro()">
+        <span class="sep">—</span>
+        <label>Até</label>
+        <input type="date" id="ch-range-ate" onchange="renderFinanceiro()">
+        <button class="btn btn-ghost btn-sm" onclick="limparRangeChart()">Limpar</button>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-mensal"></canvas></div>
+    </div>
+    <div class="card"><div class="card-label">Status de pagamentos — mês vigente</div><div class="chart-wrap"><canvas id="ch-status"></canvas></div></div>
     <div class="card"><div class="card-label">Receita por produtora</div><div class="chart-wrap"><canvas id="ch-prod"></canvas></div></div>
-    <div class="card"><div class="card-label">Jobs por mês</div><div class="chart-wrap"><canvas id="ch-dias"></canvas></div></div>
+    <div class="card"><div class="card-label">Diárias por mês</div><div class="chart-wrap"><canvas id="ch-dias"></canvas></div></div>
   </div>
 </div>
 
@@ -633,6 +666,21 @@ tr:hover td { background: var(--surface); }
 </div>
 
 </main>
+</div>
+
+<!-- MODAL DETALHE JOB -->
+<div class="modal-overlay" id="modal-detalhe">
+  <div class="modal" style="max-width:420px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div class="modal-title" id="detalhe-titulo" style="margin-bottom:0"></div>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-detalhe').classList.remove('open')">✕</button>
+    </div>
+    <div id="detalhe-conteudo"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-detalhe').classList.remove('open')">Fechar</button>
+      <button class="btn btn-primary" id="detalhe-editar">Editar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL EDITAR -->
@@ -924,11 +972,15 @@ window.renderHistorico=()=>{
   const sel=document.getElementById('f-filt-prod'),cur=sel.value;
   sel.innerHTML='<option value="">Todas as produtoras</option>'+prods.map(p=>'<option value="'+p+'"'+(p===cur?' selected':'')+'>'+p+'</option>').join('');
   const hoje=new Date().toISOString().slice(0,10);
+  const ranDe  = document.getElementById('hist-range-de')?.value || '';
+  const ranAte = document.getElementById('hist-range-ate')?.value || '';
   let lista=jobsAno('hist').filter(j=>{
     const b=!busca||j.job.toLowerCase().includes(busca)||j.produtora.toLowerCase().includes(busca);
     const s=!fSt||j.status===fSt;
     const p=!fProd||j.produtora===fProd;
-    return b&&s&&p;
+    const rDe = !ranDe || (j.data && j.data >= ranDe);
+    const rAte = !ranAte || (j.data && j.data <= ranAte);
+    return b&&s&&p&&rDe&&rAte;
   }).sort((a,b)=>{
     if(sortCol==='valor')return(a.valor-b.valor)*sortDir;
     return(a[sortCol]||'').toString().localeCompare((b[sortCol]||'').toString())*sortDir;
@@ -941,7 +993,7 @@ window.renderHistorico=()=>{
     if(j.status!=='pago'&&j.pgto&&j.pgto<hoje)return'<span class="badge b-atrasado">Atrasado</span>';
     return{pago:'<span class="badge b-pago">Pago</span>',pendente:'<span class="badge b-pendente">Pendente</span>',parcial:'<span class="badge b-parcial">Parcial</span>'}[j.status]||'';
   };
-  tbody.innerHTML=lista.map(j=>'<tr>'
+  tbody.innerHTML=lista.map(j=>'<tr class="clickable" onclick="abrirDetalhe(\''+j.id+'\')">'
     +'<td class="mono">'+(j.datas||[j.data]).map(fmtD).join('<br>')+'</td>'
     +'<td><strong>'+j.produtora+'</strong></td>'
     +'<td>'+j.job+'</td>'
@@ -952,7 +1004,7 @@ window.renderHistorico=()=>{
     +'<td class="mono">'+fmtD(j.pgto)+'</td>'
     +'<td>'+badge(j)+'</td>'
     +'<td>'+(j.nf?'<span class="badge b-nf">NF</span>':'—')+'</td>'
-    +'<td><div style="display:flex;gap:4px">'
+    +'<td onclick="event.stopPropagation()"><div style="display:flex;gap:4px">'
     +'<button class="btn btn-ghost btn-sm" onclick="abrirEditar(\''+j.id+'\')">✏</button>'
     +'<button class="btn btn-danger btn-sm" onclick="deletar(\''+j.id+'\')">✕</button>'
     +'</div></td></tr>'
@@ -1049,7 +1101,7 @@ window.renderProdutoras = () => {
           <span class="mes-bloco-nome">${lbl}</span>
           <span class="val-prod" style="font-size:13px;font-weight:700;color:${cor}">R$ ${pm.total.toFixed(0)}</span>
         </div>
-        <div>${pm.jobs.map(j=>`<div class="mes-job-row">
+        <div>${pm.jobs.map(j=>`<div class="mes-job-row clickable" onclick="abrirDetalhe('${j.id}')" style="cursor:pointer">
           <span class="mes-job-nome">${j.job}</span>
           <span class="mes-job-val val-prod">R$ ${j.valor.toFixed(2).replace('.',',')}</span>
         </div>`).join('')}</div>
@@ -1074,8 +1126,8 @@ window.renderProdutoras = () => {
       </div>
       ${meta>0?`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:4px">
         <span>${pct.toFixed(0)}% da meta (R$${meta.toLocaleString('pt-BR')})</span>
-        <span style="color:${over?'#4caf7d':'#e05c5c'}">${over?'✓ Atingido':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR')}</span>
-      </div><div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pct}%;background:${over?'#4caf7d':'#e05c5c'}"></div></div></div>`:''}
+        <span style="color:${over?'#4caf7d':pct>=70?'#f7c948':'#e05c5c'}">${over?'✓ Atingido':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR')}</span>
+      </div><div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pct}%;background:${over?'#4caf7d':pct>=70?'#f7c948':'#e05c5c'}"></div></div></div>`:''}
       ${subBlocos}
     </div>`;
   }).join('');
@@ -1129,7 +1181,7 @@ window.renderFinanceiro=()=>{
     const fatMes=p=>jobs.filter(j=>j.data?.startsWith(mes)&&j.produtora===p).reduce((s,j)=>s+j.valor,0);
     metasEl.innerHTML='<div class="metas-grid">'+prodsComMeta.map(p=>{
       const fat=fatMes(p),meta=metas[p]||0,pct=meta>0?Math.min((fat/meta)*100,100):0,over=fat>=meta;
-      const cor=over?'#4caf7d':'#e05c5c';
+      const cor = over ? '#4caf7d' : pct >= 70 ? '#f7c948' : '#e05c5c';
       return '<div class="meta-item"><div style="flex:1"><div class="meta-prod-name">'+p+'</div>'
         +'<div class="val-ocultar" style="font-size:11px;color:var(--ink3);margin-top:2px">R$'+fat.toFixed(0)+' / R$'+meta.toFixed(0)+'</div>'
         +'<div class="meta-bar-track" style="margin-top:8px"><div class="meta-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%;background:'+cor+'"></div></div></div>'
@@ -1143,11 +1195,18 @@ window.renderFinanceiro=()=>{
 
 // CHARTS
 function buildCharts(lista){
+  const ranDe  = document.getElementById('ch-range-de')?.value || '';
+  const ranAte = document.getElementById('ch-range-ate')?.value || '';
+  const listaFilt = (ranDe||ranAte) ? lista.filter(j => {
+    const ok1 = !ranDe  || (j.data && j.data >= ranDe);
+    const ok2 = !ranAte || (j.data && j.data <= ranAte);
+    return ok1 && ok2;
+  }) : lista;
   const MESES_S=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const CORES_MES=['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e','#4ecaf7','#f74e8e','#8ef74e','#f7a44e','#4ef7a4','#a44ef7'];
   const CORES_PROD=['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e'];
   const mensal={},diasM={},prodM={};
-  lista.forEach(j=>{
+  listaFilt.forEach(j=>{
     if(!j.data)return;
     const m=j.data.slice(0,7);
     mensal[m]=(mensal[m]||0)+j.valor;
@@ -1173,14 +1232,19 @@ function buildCharts(lista){
     borderRadius:4,barThickness:20
   }],base);
 
-  // 2. Status — só Pago vs Não pago, verde e vermelho
-  const pago=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
-  const npago=lista.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  const mesVigente = new Date().toISOString().slice(0,7);
+  const listaMes = lista.filter(j => j.data?.startsWith(mesVigente));
+  const pago = listaMes.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const npago = listaMes.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  const lblMes = MESES_S[parseInt(mesVigente.split('-')[1])-1];
   drawChart('ch-status','doughnut',['Pago','Não pago'],[{
     data:[pago,npago],
     backgroundColor:['#4caf7d','#e05c5c'],
     borderWidth:0,hoverOffset:4
-  }],{...base,plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#888',font:{family:'Varela Round',size:10},boxWidth:10,padding:16}}},cutout:'62%',scales:undefined});
+  }],{...base,plugins:{...base.plugins,
+    legend:{display:true,position:'bottom',labels:{color:'#888',font:{family:'Varela Round',size:10},boxWidth:10,padding:16}},
+    title:{display:true,text:lblMes,color:'#888',font:{family:'Varela Round',size:10},padding:{bottom:8}}
+  },cutout:'62%',scales:undefined});
 
   // 3. Receita por produtora x mês — barras agrupadas por mês
   const prods=Object.keys(prodM);
@@ -1362,6 +1426,49 @@ function aplicarOcultarValores(){
     el.style.userSelect = valoresOcultos ? 'none' : '';
   });
 }
+
+// MODAL DETALHE JOB
+window.abrirDetalhe = (id) => {
+  const j = jobs.find(x => x.id === id); if(!j) return;
+  document.getElementById('detalhe-titulo').textContent = j.job;
+  const badge = j.status==='pago'?'<span class="badge b-pago">Pago</span>':
+                j.status==='pendente'?'<span class="badge b-pendente">Pendente</span>':
+                '<span class="badge b-parcial">Parcial</span>';
+  const rows = [
+    ['Produtora', j.produtora],
+    ['Data(s)', (j.datas||[j.data]).map(fmtD).join(', ')],
+    ['Entrada', j.entrada||'—'],
+    ['Saída', j.saida||'—'],
+    ['Horas', j.horas ? j.horas+'h' : '—'],
+    ['Valor', 'R$ '+j.valor.toFixed(2).replace('.',',')],
+    ['Pagamento', fmtD(j.pgto)],
+    ['Status', badge],
+    ['Nota Fiscal', j.nf ? '✓ Sim' : '—'],
+    ['Obs', j.obs||'—'],
+  ];
+  document.getElementById('detalhe-conteudo').innerHTML =
+    rows.map(([l,v]) => `<div class="job-detail-row">
+      <span class="job-detail-lbl">${l}</span>
+      <span class="job-detail-val">${v}</span>
+    </div>`).join('');
+  document.getElementById('detalhe-editar').onclick = () => {
+    document.getElementById('modal-detalhe').classList.remove('open');
+    abrirEditar(id);
+  };
+  document.getElementById('modal-detalhe').classList.add('open');
+};
+
+// RANGE FILTERS
+window.limparRangeHist = () => {
+  document.getElementById('hist-range-de').value = '';
+  document.getElementById('hist-range-ate').value = '';
+  renderHistorico();
+};
+window.limparRangeChart = () => {
+  document.getElementById('ch-range-de').value = '';
+  document.getElementById('ch-range-ate').value = '';
+  renderFinanceiro();
+};
 
 // CONFIG
 window.renderConfigMetas=()=>{
