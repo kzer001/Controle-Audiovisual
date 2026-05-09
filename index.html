@@ -22,9 +22,20 @@
   --radius:  6px;
   --shadow:  0 2px 8px rgba(0,0,0,0.5);
 }
-html { color-scheme: dark; background: #111; }
+html.light {
+  --bg:      #f5f5f7;
+  --surface: #ebebed;
+  --card:    #ffffff;
+  --border:  #d8d8da;
+  --ink:     #1d1d1f;
+  --ink2:    #6e6e73;
+  --ink3:    #aeaeb2;
+  --shadow:  0 2px 8px rgba(0,0,0,0.08);
+}
+html { color-scheme: dark; background: #111; transition: background .3s; }
+html.light { color-scheme: light; background: #f5f5f7; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Varela Round', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; }
+body { font-family: 'Varela Round', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; transition: background .3s, color .3s; }
 
 /* LOGIN */
 #login-screen {
@@ -91,7 +102,13 @@ nav button.active { color: var(--ink); border-bottom-color: var(--ink); }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 .user-avatar { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); }
 .user-name   { font-size: 12px; color: var(--ink2); }
-.btn-header  {
+.btn-tema {
+  background: none; border: 1px solid var(--border); border-radius: 20px;
+  color: var(--ink2); cursor: pointer; font-size: 14px;
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; padding: 0;
+}
+.btn-tema:hover { border-color: var(--ink2); transform: rotate(20deg); }
   background: none; border: 1px solid var(--border); border-radius: var(--radius);
   color: var(--ink2); cursor: pointer; font-family: 'Varela Round', sans-serif;
   font-size: 11px; padding: 5px 10px; transition: all .15s; letter-spacing: .5px;
@@ -238,12 +255,26 @@ tr:hover td { background: var(--surface); }
 .chart-wrap  { position: relative; height: 200px; }
 
 /* PRODUTORA CARDS */
-.prod-card   { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 10px; }
-.prod-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.prod-name   { font-size: 15px; font-weight: 700; }
-.prod-stats  { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.ps-val { font-size: 13px; font-weight: 700; }
+.prod-card   { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.prod-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.prod-name   { font-size: 17px; font-weight: 700; }
+.prod-stats  { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+.ps-val { font-size: 15px; font-weight: 700; }
 .ps-lbl { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink3); margin-top: 3px; }
+
+/* SUB-BLOCOS MENSAIS */
+.mes-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; }
+.mes-tab  { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; color: var(--ink3); cursor: pointer; font-family: 'Varela Round', sans-serif; font-size: 10px; padding: 4px 12px; transition: all .15s; }
+.mes-tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.mes-tab:hover  { border-color: var(--ink2); color: var(--ink); }
+.mes-bloco { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-top: 10px; }
+.mes-bloco-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.mes-bloco-nome { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink2); }
+.mes-bloco-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.mes-job-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.mes-job-row:last-child { border-bottom: none; }
+.mes-job-nome { color: var(--ink2); }
+.mes-job-val  { color: var(--ink); font-size: 12px; }
 
 /* META BAR */
 .meta-bar-track { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 10px; }
@@ -383,6 +414,7 @@ tr:hover td { background: var(--surface); }
     <div class="sync-dot" id="sync-dot" title="Status de sincronização"></div>
     <img class="user-avatar" id="user-avatar" src="" alt="">
     <span class="user-name" id="user-name"></span>
+    <button class="btn-tema" id="btn-tema" onclick="toggleTema()" title="Alternar tema">☀</button>
     <button class="btn-header" onclick="logout()">Sair</button>
     <button class="btn-close" onclick="fecharSistema()" title="Salvar, sincronizar e fechar">&#10005; Fechar</button>
   </div>
@@ -467,6 +499,7 @@ tr:hover td { background: var(--surface); }
   <div class="page-header">
     <div><div class="page-title">Histórico</div><div class="page-sub">Todos os jobs</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" id="btn-ocultar-hist" onclick="toggleValoresHist()">&#128065; Ocultar valores</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">&#8595; CSV</button>
       <button class="btn btn-sm" onclick="exportRelatorio()">&#8595; Relatório</button>
     </div>
@@ -513,8 +546,11 @@ tr:hover td { background: var(--surface); }
 <div id="page-produtoras" class="page">
   <div class="page-header">
     <div><div class="page-title">Produtoras</div><div class="page-sub">Desempenho por empresa</div></div>
+    <button class="btn btn-ghost btn-sm" id="btn-ocultar-prod" onclick="toggleValoresProd()">&#128065; Ocultar valores</button>
   </div>
   <div id="ytabs-prod" class="year-tabs"></div>
+  <!-- Filtro de meses -->
+  <div class="mes-tabs" id="mes-filtro-tabs"></div>
   <div id="lista-prod">
     <div class="empty"><div class="empty-icon">&#127970;</div><p>Nenhum job ainda.</p></div>
   </div>
@@ -556,7 +592,7 @@ tr:hover td { background: var(--surface); }
       Com entrada e saída: evento com horário. Sem horário: dia inteiro.
     </p>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="connectGCal()">Conectar Agenda</button>
+      <button class="btn btn-primary" id="btn-conectar-agenda" onclick="connectGCal()">Conectar Agenda</button>
       <button class="btn btn-ghost" id="btn-sync-hist" onclick="sincronizarHistorico()" style="display:none">&#8635; Sincronizar histórico</button>
       <div class="gcal-status">
         <div class="gcal-dot" id="gcal-dot2"></div>
@@ -662,6 +698,18 @@ let jobs=[], metas={}, user=null, unsub=null, editId=null;
 let ano={hist:new Date().getFullYear(),prod:new Date().getFullYear(),fin:new Date().getFullYear()};
 let charts={}, sortCol='data', sortDir=-1;
 let gcalOk=false, gcalToken=null, calId=null;
+
+// TEMA
+let temaAtual = localStorage.getItem('ca_tema') || 'dark';
+function aplicarTema(t) {
+  temaAtual = t;
+  document.documentElement.classList.toggle('light', t === 'light');
+  const btn = document.getElementById('btn-tema');
+  if(btn) btn.textContent = t === 'light' ? '☽' : '☀';
+  localStorage.setItem('ca_tema', t);
+}
+window.toggleTema = () => aplicarTema(temaAtual === 'dark' ? 'light' : 'dark');
+aplicarTema(temaAtual); // aplica ao carregar
 
 // TOGGLE NF
 window.toggleNF = (id) => {
@@ -898,7 +946,7 @@ window.renderHistorico=()=>{
     +'<td class="mono">'+(j.entrada||'—')+'</td>'
     +'<td class="mono">'+(j.saida||'—')+'</td>'
     +'<td class="mono">'+(j.horas?j.horas+'h':'—')+'</td>'
-    +'<td class="money">R$ '+j.valor.toFixed(2).replace('.',',')+'</td>'
+    +'<td class="money val-hist">R$ '+j.valor.toFixed(2).replace('.',',')+'</td>'
     +'<td class="mono">'+fmtD(j.pgto)+'</td>'
     +'<td>'+badge(j)+'</td>'
     +'<td>'+(j.nf?'<span class="badge b-nf">NF</span>':'—')+'</td>'
@@ -910,34 +958,126 @@ window.renderHistorico=()=>{
 };
 
 // PRODUTORAS
-window.renderProdutoras=()=>{
-  const lista=jobsAno('prod');
-  const mp={};
-  lista.forEach(j=>{
-    if(!mp[j.produtora])mp[j.produtora]={total:0,pago:0,pend:0,dias:0,horas:0};
-    const p=mp[j.produtora];
-    p.total+=j.valor;p.dias+=(j.datas?.length||1);p.horas+=j.horas||0;
-    j.status==='pago'?p.pago+=j.valor:p.pend+=j.valor;
+let mesesFiltro = []; // meses selecionados no filtro (vazio = todos)
+let valoresProdOcultos = false;
+
+window.toggleValoresProd = () => {
+  valoresProdOcultos = !valoresProdOcultos;
+  const btn = document.getElementById('btn-ocultar-prod');
+  if(btn) btn.innerHTML = valoresProdOcultos ? '&#128065; Mostrar valores' : '&#128065; Ocultar valores';
+  document.querySelectorAll('.val-prod').forEach(el => {
+    el.style.filter = valoresProdOcultos ? 'blur(6px)' : 'none';
+    el.style.userSelect = valoresProdOcultos ? 'none' : '';
   });
-  const el=document.getElementById('lista-prod');
-  if(!Object.keys(mp).length){el.innerHTML='<div class="empty"><div class="empty-icon">&#127970;</div><p>Nenhum job neste ano.</p></div>';return;}
-  el.innerHTML=Object.entries(mp).sort((a,b)=>b[1].total-a[1].total).map(([nome,p])=>{
-    const meta=metas[nome]||0,pct=meta>0?Math.min((p.total/meta)*100,100):0,over=meta>0&&p.total>=meta;
-    const rph=p.horas>0?'R$'+(p.total/p.horas).toFixed(0)+'/h':'—';
-    return '<div class="prod-card">'
-      +'<div class="prod-header"><div class="prod-name">'+nome+'</div>'
-      +(meta>0?'<span class="badge '+(over?'b-pago':'b-pendente')+'">'+(over?'Meta atingida':'Em progresso')+'</span>':'')
-      +'</div>'
-      +'<div class="prod-stats">'
-      +'<div><div class="ps-val">R$'+p.total.toFixed(0)+'</div><div class="ps-lbl">Faturado</div></div>'
-      +'<div><div class="ps-val">R$'+p.pago.toFixed(0)+'</div><div class="ps-lbl">Recebido</div></div>'
-      +'<div><div class="ps-val">R$'+p.pend.toFixed(0)+'</div><div class="ps-lbl">Pendente</div></div>'
-      +'<div><div class="ps-val">'+p.dias+'</div><div class="ps-lbl">Dias</div></div>'
-      +'<div><div class="ps-val">'+rph+'</div><div class="ps-lbl">R$/h</div></div>'
-      +'</div>'
-      +(meta>0?'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:4px"><span>'+pct.toFixed(0)+'% da meta (R$'+meta.toLocaleString('pt-BR')+')</span><span>'+(over?'Atingido':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR'))+'</span></div><div class="meta-bar-track"><div class="meta-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div></div>':'')
-      +'</div>';
+};
+
+window.toggleMesFiltro = (mes, btn) => {
+  const idx = mesesFiltro.indexOf(mes);
+  if(idx >= 0) mesesFiltro.splice(idx, 1); else mesesFiltro.push(mes);
+  document.querySelectorAll('.mes-filtro-btn').forEach(b => {
+    const m = b.dataset.mes;
+    b.classList.toggle('active', mesesFiltro.includes(m) || mesesFiltro.length === 0);
+  });
+  renderProdutoras();
+};
+
+window.limparFiltroMes = () => {
+  mesesFiltro = [];
+  document.querySelectorAll('.mes-filtro-btn').forEach(b => b.classList.add('active'));
+  renderProdutoras();
+};
+
+window.renderProdutoras = () => {
+  const listaAno = jobsAno('prod');
+  // Monta filtro de meses disponíveis
+  const mesesDisp = [...new Set(listaAno.map(j => j.data?.slice(0,7)).filter(Boolean))].sort();
+  const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const tabsEl = document.getElementById('mes-filtro-tabs');
+  if(tabsEl) {
+    tabsEl.innerHTML = '<button class="mes-tab active" onclick="limparFiltroMes()">Todos</button>'
+      + mesesDisp.map(m => {
+          const lbl = MESES_PT[parseInt(m.split('-')[1])-1];
+          const ativo = mesesFiltro.length === 0 || mesesFiltro.includes(m);
+          return `<button class="mes-tab mes-filtro-btn ${ativo?'active':''}" data-mes="${m}" onclick="toggleMesFiltro('${m}',this)">${lbl}</button>`;
+        }).join('');
+  }
+
+  // Filtra jobs pelo período selecionado
+  const lista = mesesFiltro.length > 0
+    ? listaAno.filter(j => j.data && mesesFiltro.some(m => j.data.startsWith(m)))
+    : listaAno;
+
+  const mp = {};
+  lista.forEach(j => {
+    if(!mp[j.produtora]) mp[j.produtora] = { total:0, pago:0, pend:0, dias:0, horas:0, porMes:{} };
+    const p = mp[j.produtora];
+    p.total += j.valor; p.dias += (j.datas?.length||1); p.horas += j.horas||0;
+    j.status==='pago' ? p.pago += j.valor : p.pend += j.valor;
+    const mes = j.data?.slice(0,7);
+    if(mes) {
+      if(!p.porMes[mes]) p.porMes[mes] = { total:0, dias:0, jobs:[] };
+      p.porMes[mes].total += j.valor;
+      p.porMes[mes].dias += 1;
+      p.porMes[mes].jobs.push(j);
+    }
+  });
+
+  const el = document.getElementById('lista-prod');
+  if(!Object.keys(mp).length) { el.innerHTML='<div class="empty"><div class="empty-icon">&#127970;</div><p>Nenhum job neste período.</p></div>'; return; }
+
+  const CORES_PROD = ['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e'];
+  const prodNomes = Object.keys(mp);
+
+  el.innerHTML = Object.entries(mp).sort((a,b)=>b[1].total-a[1].total).map(([nome, p], idx) => {
+    const meta = metas[nome]||0, pct = meta>0?Math.min((p.total/meta)*100,100):0, over = meta>0&&p.total>=meta;
+    const rph = p.horas>0 ? 'R$'+(p.total/p.horas).toFixed(0)+'/h' : '—';
+    const cor = CORES_PROD[idx % CORES_PROD.length];
+
+    // Sub-blocos mensais
+    const mesesProd = Object.keys(p.porMes).sort();
+    const subBlocos = mesesProd.map(mes => {
+      const pm = p.porMes[mes];
+      const lbl = MESES_PT[parseInt(mes.split('-')[1])-1]+' '+mes.split('-')[0];
+      return `<div class="mes-bloco">
+        <div class="mes-bloco-header">
+          <span class="mes-bloco-nome">${lbl}</span>
+          <span class="val-prod" style="font-size:13px;font-weight:700;color:${cor}">R$ ${pm.total.toFixed(0)}</span>
+        </div>
+        <div>${pm.jobs.map(j=>`<div class="mes-job-row">
+          <span class="mes-job-nome">${j.job}</span>
+          <span class="mes-job-val val-prod">R$ ${j.valor.toFixed(2).replace('.',',')}</span>
+        </div>`).join('')}</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:8px">${pm.dias} dia${pm.dias>1?'s':''}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="prod-card">
+      <div class="prod-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${cor};flex-shrink:0"></div>
+          <div class="prod-name">${nome}</div>
+        </div>
+        ${meta>0?`<span class="badge ${over?'b-pago':'b-pendente'}">${over?'Meta atingida':'Em progresso'}</span>`:''}
+      </div>
+      <div class="prod-stats">
+        <div><div class="ps-val val-prod">R$${p.total.toFixed(0)}</div><div class="ps-lbl">Faturado</div></div>
+        <div><div class="ps-val val-prod">R$${p.pago.toFixed(0)}</div><div class="ps-lbl">Recebido</div></div>
+        <div><div class="ps-val val-prod">R$${p.pend.toFixed(0)}</div><div class="ps-lbl">Pendente</div></div>
+        <div><div class="ps-val">${p.dias}</div><div class="ps-lbl">Dias</div></div>
+        <div><div class="ps-val">${rph}</div><div class="ps-lbl">R$/h</div></div>
+      </div>
+      ${meta>0?`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:4px">
+        <span>${pct.toFixed(0)}% da meta (R$${meta.toLocaleString('pt-BR')})</span>
+        <span style="color:${over?'#4caf7d':'#e05c5c'}">${over?'✓ Atingido':'Falta R$'+Math.max(0,meta-p.total).toLocaleString('pt-BR')}</span>
+      </div><div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pct}%;background:${over?'#4caf7d':'#e05c5c'}"></div></div></div>`:''}
+      ${subBlocos}
+    </div>`;
   }).join('');
+
+  // Aplica estado de ocultar
+  if(valoresProdOcultos) {
+    document.querySelectorAll('.val-prod').forEach(el => { el.style.filter='blur(6px)'; el.style.userSelect='none'; });
+  }
 };
 
 // FINANCEIRO
@@ -998,34 +1138,75 @@ window.renderFinanceiro=()=>{
 // CHARTS
 function buildCharts(lista){
   const MESES_S=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const CORES_MES=['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e','#4ecaf7','#f74e8e','#8ef74e','#f7a44e','#4ef7a4','#a44ef7'];
+  const CORES_PROD=['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e'];
   const mensal={},diasM={},prodM={};
   lista.forEach(j=>{
     if(!j.data)return;
     const m=j.data.slice(0,7);
     mensal[m]=(mensal[m]||0)+j.valor;
     diasM[m]=(diasM[m]||0)+1;
-    prodM[j.produtora]=(prodM[j.produtora]||0)+j.valor;
+    if(!prodM[j.produtora])prodM[j.produtora]={};
+    prodM[j.produtora][m]=(prodM[j.produtora][m]||0)+j.valor;
   });
   const meses=Object.keys(mensal).sort();
   const lbl=m=>MESES_S[parseInt(m.split('-')[1])-1];
   const base={
     responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{backgroundColor:'#222',titleColor:'#f0f0f0',bodyColor:'#888',borderColor:'#333',borderWidth:1}},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#222',titleColor:'#f0f0f0',bodyColor:'#aaa',borderColor:'#333',borderWidth:1}},
     scales:{
       x:{ticks:{color:'#555',font:{family:'Varela Round',size:10}},grid:{display:false},border:{display:false}},
-      y:{ticks:{color:'#555',font:{family:'Varela Round',size:10}},grid:{color:'#222'},border:{display:false}}
+      y:{ticks:{color:'#555',font:{family:'Varela Round',size:10}},grid:{color:'#1e1e1e'},border:{display:false}}
     }
   };
-  drawChart('ch-mensal','bar',meses.map(lbl),[{data:meses.map(m=>mensal[m]),backgroundColor:'#4e8ef7',borderRadius:2,barThickness:14}],base);
-  const p1=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
-  const p2=lista.filter(j=>j.status==='pendente').reduce((s,j)=>s+j.valor,0);
-  const p3=lista.filter(j=>j.status==='parcial').reduce((s,j)=>s+j.valor,0);
-  drawChart('ch-status','doughnut',['Pago','Pendente','Parcial'],[{data:[p1,p2,p3],backgroundColor:['#4caf7d','#f7c948','#e05c5c'],borderWidth:0,hoverOffset:3}],
-    {...base,plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#888',font:{family:'Varela Round',size:10},boxWidth:10,padding:14}}},cutout:'65%',scales:undefined});
-  const CORES=['#4e8ef7','#e05c5c','#4caf7d','#f7c948','#a47cf7','#f7944e'];
-  const pKeys=Object.keys(prodM).sort((a,b)=>prodM[b]-prodM[a]).slice(0,6);
-  drawChart('ch-prod','bar',pKeys,[{data:pKeys.map(p=>prodM[p]),backgroundColor:pKeys.map((_,i)=>CORES[i%CORES.length]),borderRadius:2,barThickness:14}],base);
-  drawChart('ch-dias','bar',meses.map(lbl),[{data:meses.map(m=>diasM[m]||0),backgroundColor:'#a47cf7',borderRadius:2,barThickness:14}],base);
+
+  // 1. Faturamento mensal — barras com cor diferente por mês
+  drawChart('ch-mensal','bar',meses.map(lbl),[{
+    data:meses.map(m=>mensal[m]),
+    backgroundColor:meses.map((_,i)=>CORES_MES[i%CORES_MES.length]),
+    borderRadius:4,barThickness:20
+  }],base);
+
+  // 2. Status — só Pago vs Não pago, verde e vermelho
+  const pago=lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const npago=lista.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  drawChart('ch-status','doughnut',['Pago','Não pago'],[{
+    data:[pago,npago],
+    backgroundColor:['#4caf7d','#e05c5c'],
+    borderWidth:0,hoverOffset:4
+  }],{...base,plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#888',font:{family:'Varela Round',size:10},boxWidth:10,padding:16}}},cutout:'62%',scales:undefined});
+
+  // 3. Receita por produtora x mês — barras agrupadas por mês
+  const prods=Object.keys(prodM);
+  const datasets=prods.map((p,i)=>({
+    label:p,
+    data:meses.map(m=>prodM[p][m]||0),
+    backgroundColor:CORES_PROD[i%CORES_PROD.length],
+    borderRadius:3,
+    barThickness:10
+  }));
+  drawChart('ch-prod','bar',meses.map(lbl),datasets,{
+    ...base,
+    plugins:{...base.plugins,legend:{display:true,position:'top',labels:{color:'#888',font:{family:'Varela Round',size:10},boxWidth:10,padding:12}}},
+    scales:{...base.scales},
+    barPercentage:0.9,
+    categoryPercentage:0.8
+  });
+
+  // 4. Diárias por mês — linha/ponto
+  drawChart('ch-dias','line',meses.map(lbl),[{
+    data:meses.map(m=>diasM[m]||0),
+    borderColor:'#a47cf7',
+    backgroundColor:'rgba(164,124,247,0.1)',
+    pointBackgroundColor:'#a47cf7',
+    pointRadius:5,
+    pointHoverRadius:7,
+    tension:0.3,
+    fill:true
+  }],{...base,scales:{
+    x:{...base.scales.x},
+    y:{...base.scales.y,ticks:{...base.scales.y.ticks,stepSize:1}}
+  }});
 }
 function drawChart(id,type,labels,datasets,options){
   if(charts[id])charts[id].destroy();
@@ -1081,11 +1262,25 @@ async function criarEventos(job){
   }
 }
 
+// OCULTAR VALORES HISTÓRICO
+let valoresHistOcultos = false;
+window.toggleValoresHist = () => {
+  valoresHistOcultos = !valoresHistOcultos;
+  const btn = document.getElementById('btn-ocultar-hist');
+  if(btn) btn.innerHTML = valoresHistOcultos ? '&#128065; Mostrar valores' : '&#128065; Ocultar valores';
+  document.querySelectorAll('.val-hist').forEach(el => {
+    el.style.filter = valoresHistOcultos ? 'blur(6px)' : 'none';
+    el.style.userSelect = valoresHistOcultos ? 'none' : '';
+  });
+};
+
 function setGCalUI(on){
   ['gcal-dot','gcal-dot2'].forEach(id=>{const e=document.getElementById(id);if(e)e.className='gcal-dot'+(on?' on':'');});
   ['gcal-lbl','gcal-lbl2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=on?'Agenda conectada':'Desconectado';});
-  const btn=document.getElementById('btn-sync-hist');
-  if(btn)btn.style.display=on?'inline-flex':'none';
+  const btnSync=document.getElementById('btn-sync-hist');
+  if(btnSync)btnSync.style.display=on?'inline-flex':'none';
+  const btnConectar=document.getElementById('btn-conectar-agenda');
+  if(btnConectar)btnConectar.style.display=on?'none':'inline-flex';
 }
 
 window.sincronizarHistorico=async(silencioso=false)=>{
