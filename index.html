@@ -344,7 +344,7 @@ tr.clickable:hover td { background: var(--surface); }
   .prod-stats  { grid-template-columns: repeat(3, 1fr); }
   .metas-grid  { grid-template-columns: 1fr; }
   .page-title  { font-size: 20px; }
-  main         { padding: 14px 12px 80px 12px; }
+  main         { padding: 14px 12px 110px 12px; }
 
   /* Header compacto no mobile */
   header { padding: 0 12px; height: auto; flex-wrap: wrap; }
@@ -353,19 +353,30 @@ tr.clickable:hover td { background: var(--surface); }
   .btn-close { font-size: 10px; padding: 4px 8px; }
   .header-right { gap: 6px; padding-bottom: 6px; }
 
-  /* Nav vira barra inferior no mobile */
+  /* Nav barra inferior com safe area para iPhone */
   nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: #1a1a1a; border-top: 1px solid var(--border);
+    background: var(--card);
+    border-top: 1px solid var(--border);
     display: flex; justify-content: space-around;
-    padding: 6px 0 8px; z-index: 100; flex-wrap: nowrap;
+    padding: 10px 0; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 100; flex-wrap: nowrap;
   }
   nav button {
-    flex: 1; font-size: 9px; padding: 6px 4px;
+    flex: 1; font-size: 10px; padding: 8px 4px 4px;
     border-bottom: none; border-top: 2px solid transparent;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    min-height: 52px;
   }
-  nav button.active { border-top-color: var(--ink); border-bottom: none; }
+  nav button.active { border-top-color: var(--ink); color: var(--ink); }
+  nav button::before {
+    font-size: 18px; line-height: 1;
+  }
+  nav button:nth-child(1)::before { content: '+'; }
+  nav button:nth-child(2)::before { content: '≡'; }
+  nav button:nth-child(3)::before { content: '🏢'; font-size: 16px; }
+  nav button:nth-child(4)::before { content: '◈'; }
+  nav button:nth-child(5)::before { content: '⚙'; }
 
   .page-header { flex-direction: column; align-items: flex-start; }
   .gcal-status { flex-wrap: wrap; }
@@ -375,7 +386,10 @@ tr.clickable:hover td { background: var(--surface); }
   .filter-bar  { gap: 6px; }
   .filter-bar input, .filter-bar select { min-width: 100px; }
   .table-wrap  { font-size: 12px; }
-  td, th       { padding: 8px 8px; }
+  td, th       { padding: 8px; }
+  .range-filter { flex-wrap: wrap; }
+  .range-filter input[type="date"] { min-width: 120px; }
+  .toast { bottom: calc(90px + env(safe-area-inset-bottom)); right: 12px; }
 }
 
 @media(max-width:480px) {
@@ -493,6 +507,12 @@ tr.clickable:hover td { background: var(--surface); }
         <input type="date" id="f-pgto">
       </div>
       <div class="form-group full">
+        <div class="toggle-row" onclick="toggleUsarDiaPgto()">
+          <input type="checkbox" id="f-usar-dia-pgto" style="pointer-events:none">
+          <span id="f-usar-dia-pgto-lbl">Usar dia de pagamento configurado da produtora</span>
+        </div>
+      </div>
+      <div class="form-group full">
         <div class="toggle-row" onclick="toggleNF('f-nf')">
           <input type="checkbox" id="f-nf">
           <span>Emitir Nota Fiscal</span>
@@ -516,10 +536,12 @@ tr.clickable:hover td { background: var(--surface); }
     <div><div class="page-title">Histórico</div><div class="page-sub">Todos os jobs</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" id="btn-ocultar-hist" onclick="toggleValoresHist()">&#128065; Mostrar valores</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('upload-jobs').click()">&#8593; Importar jobs</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">&#8595; CSV</button>
       <button class="btn btn-sm" onclick="exportRelatorio()">&#8595; Relatório</button>
     </div>
   </div>
+  <input type="file" id="upload-jobs" accept=".txt,.csv,.json,.ics,.xlsx,.xls,.tsv" style="display:none" onchange="importarJobs(event)">
   <div id="ytabs-hist" class="year-tabs"></div>
   <div class="range-filter">
     <label>De</label>
@@ -584,7 +606,10 @@ tr.clickable:hover td { background: var(--surface); }
 <div id="page-financeiro" class="page">
   <div class="page-header">
     <div><div class="page-title">Financeiro</div><div class="page-sub">Dashboard e metas</div></div>
-    <button class="btn btn-ghost btn-sm" id="btn-ocultar" onclick="toggleValores()">&#128065; Mostrar valores</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-ghost btn-sm" id="btn-ocultar" onclick="toggleValores()">&#128065; Mostrar valores</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportFinanceiro()">&#8595; Exportar</button>
+    </div>
   </div>
   <div id="ytabs-fin" class="year-tabs"></div>
   <div class="stats-grid" id="stats-fin"></div>
@@ -635,6 +660,14 @@ tr.clickable:hover td { background: var(--surface); }
       </div>
     </div>
     <p style="font-size:11px;color:var(--ink3);margin-top:10px" id="sync-hist-info"></p>
+  </div>
+  <div class="card section-gap">
+    <div class="card-label">Dia de pagamento por produtora</div>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:14px">Configure o dia fixo de pagamento de cada produtora. Ao criar um job, você pode usar esse dia automaticamente.</p>
+    <div id="pgto-config" class="metas-grid"></div>
+    <div style="margin-top:12px;display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" onclick="salvarDiasPgto()">Salvar dias</button>
+    </div>
   </div>
   <div class="card section-gap">
     <div class="card-label">Metas mensais por produtora</div>
@@ -816,6 +849,7 @@ onAuthStateChanged(auth,async u=>{
     document.getElementById('cfg-name').textContent=u.displayName||'';
     document.getElementById('cfg-email').textContent=u.email||'';
     await loadMetas();
+    await carregarDiasPgto();
     startListener();
   } else {
     user=null;
@@ -1470,12 +1504,234 @@ window.limparRangeChart = () => {
   renderFinanceiro();
 };
 
+// DIAS DE PAGAMENTO POR PRODUTORA
+let diasPgto = {};
+
+async function carregarDiasPgto() {
+  try {
+    const s = await getDoc(doc(db,'users',user.uid,'config','diasPgto'));
+    diasPgto = s.exists() ? s.data() : {};
+  } catch(e) { diasPgto = {}; }
+}
+
+window.salvarDiasPgto = async () => {
+  document.querySelectorAll('.pgto-input').forEach(i => {
+    const p = i.dataset.prod, v = parseInt(i.value)||0;
+    v > 0 ? diasPgto[p] = v : delete diasPgto[p];
+  });
+  try {
+    await setDoc(doc(db,'users',user.uid,'config','diasPgto'), diasPgto);
+    toast('Dias de pagamento salvos!');
+  } catch(e) { toast('Erro.',true); }
+};
+
+window.toggleUsarDiaPgto = () => {
+  const cb = document.getElementById('f-usar-dia-pgto');
+  cb.checked = !cb.checked;
+  if(cb.checked) {
+    const prod = document.getElementById('f-produtora').value.trim();
+    const dia = diasPgto[prod];
+    if(dia) {
+      // Calcula a próxima ocorrência do dia na data do job
+      const datas = mdcDatas.sort();
+      const baseData = datas.length ? new Date(datas[datas.length-1]+'T12:00:00') : new Date();
+      const pgtoDate = new Date(baseData.getFullYear(), baseData.getMonth(), dia);
+      if(pgtoDate < baseData) pgtoDate.setMonth(pgtoDate.getMonth()+1);
+      document.getElementById('f-pgto').value = pgtoDate.toISOString().slice(0,10);
+      document.getElementById('f-pgto').disabled = true;
+      document.getElementById('f-usar-dia-pgto-lbl').textContent = `Pagamento dia ${dia} — ${fmtD(document.getElementById('f-pgto').value)}`;
+    } else {
+      cb.checked = false;
+      toast('Configure o dia de pagamento desta produtora em Config.', true);
+    }
+  } else {
+    document.getElementById('f-pgto').disabled = false;
+    document.getElementById('f-pgto').value = '';
+    document.getElementById('f-usar-dia-pgto-lbl').textContent = 'Usar dia de pagamento configurado da produtora';
+  }
+};
+
+// IMPORTAR JOBS DE ARQUIVO
+window.importarJobs = async (e) => {
+  const file = e.target.files[0]; if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const text = await file.text();
+  let jobsImportados = [];
+
+  try {
+    if(ext === 'json') {
+      // JSON backup
+      const data = JSON.parse(text);
+      jobsImportados = Array.isArray(data) ? data : (data.jobs || []);
+
+    } else if(ext === 'ics') {
+      // Google Calendar / iCal
+      const eventos = text.split('BEGIN:VEVENT').slice(1);
+      for(const ev of eventos) {
+        const getSummary = ev.match(/SUMMARY:(.+)/)?.[1]?.trim() || 'Job importado';
+        const dtStart = ev.match(/DTSTART[^:]*:(\d{8})/)?.[1];
+        if(!dtStart) continue;
+        const data = `${dtStart.slice(0,4)}-${dtStart.slice(4,6)}-${dtStart.slice(6,8)}`;
+        const descMatch = ev.match(/DESCRIPTION:(.+?)(?=\n[A-Z])/s)?.[1]?.replace(/\\n/g,'\n').trim() || '';
+        const valorMatch = descMatch.match(/Valor[^R]*R\$?\s*([\d.,]+)/i);
+        const valor = valorMatch ? parseFloat(valorMatch[1].replace(',','.')) : 0;
+        jobsImportados.push({ job: getSummary, data, valor, produtora: 'Importado', status:'pendente' });
+      }
+
+    } else {
+      // TXT / CSV / TSV — tenta interpretar linhas
+      // Formato esperado: data | produtora | job | valor
+      const linhas = text.split('\n').filter(l => l.trim());
+      const sep = ext === 'tsv' ? '\t' : text.includes(';') ? ';' : ',';
+      for(const linha of linhas) {
+        const cols = linha.split(sep).map(c => c.replace(/"/g,'').trim());
+        if(cols.length < 2) continue;
+        // Tenta detectar data no formato dd/mm/aaaa ou aaaa-mm-dd
+        let data = '', job = '', produtora = 'Importado', valor = 0;
+        for(const col of cols) {
+          if(/^\d{4}-\d{2}-\d{2}$/.test(col)) { data = col; continue; }
+          if(/^\d{2}\/\d{2}\/\d{4}$/.test(col)) { data = col.split('/').reverse().join('-'); continue; }
+          if(/^\d{2}\/\d{2}$/.test(col)) {
+            const ano = new Date().getFullYear();
+            data = `${ano}-${col.split('/')[1]}-${col.split('/')[0]}`; continue;
+          }
+          if(/^[\d.,]+$/.test(col) && parseFloat(col.replace(',','.')) > 0) { valor = parseFloat(col.replace(',','.')); continue; }
+          if(!job) job = col; else if(produtora === 'Importado') produtora = col;
+        }
+        if(data && job) jobsImportados.push({ job, data, valor, produtora, status:'pendente' });
+      }
+    }
+
+    if(!jobsImportados.length) { toast('Nenhum job encontrado no arquivo.', true); return; }
+
+    if(!confirm(`Importar ${jobsImportados.length} job(s) do arquivo "${file.name}"?`)) return;
+
+    setSyncSt('syncing');
+    let ok = 0;
+    for(const j of jobsImportados) {
+      await addDoc(collection(db,'users',user.uid,'jobs'), {
+        produtora: j.produtora || 'Importado',
+        job:       j.job || 'Job importado',
+        data:      j.data || new Date().toISOString().slice(0,10),
+        datas:     [j.data || new Date().toISOString().slice(0,10)],
+        entrada: '', saida: '', horas: 0, rph: 0,
+        valor:   j.valor || 0,
+        pgto:    j.pgto || '',
+        status:  j.status || 'pendente',
+        nf:      j.nf || false,
+        obs:     j.obs || '',
+        criadoEm: Date.now()
+      });
+      ok++;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    toast(`${ok} job(s) importados!`);
+  } catch(err) {
+    toast('Erro ao ler arquivo: ' + err.message, true);
+  }
+  e.target.value = '';
+};
+
+// EXPORTAR FINANCEIRO
+window.exportFinanceiro = () => {
+  const ranDe  = document.getElementById('ch-range-de')?.value || '';
+  const ranAte = document.getElementById('ch-range-ate')?.value || '';
+  const lista  = ranDe || ranAte
+    ? jobs.filter(j => (!ranDe||j.data>=ranDe) && (!ranAte||j.data<=ranAte))
+    : jobs;
+
+  if(!lista.length) { toast('Nenhum job no período.', true); return; }
+
+  const total  = lista.reduce((s,j)=>s+j.valor,0);
+  const pago   = lista.filter(j=>j.status==='pago').reduce((s,j)=>s+j.valor,0);
+  const pend   = lista.filter(j=>j.status!=='pago').reduce((s,j)=>s+j.valor,0);
+  const horas  = lista.reduce((s,j)=>s+(j.horas||0),0);
+
+  // Agrupa por produtora
+  const porProd = {};
+  lista.forEach(j => {
+    if(!porProd[j.produtora]) porProd[j.produtora] = { total:0, pago:0, pend:0, dias:0 };
+    porProd[j.produtora].total += j.valor;
+    porProd[j.produtora].dias++;
+    j.status==='pago' ? porProd[j.produtora].pago+=j.valor : porProd[j.produtora].pend+=j.valor;
+  });
+
+  // Agrupa por mês
+  const MESES_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const porMes = {};
+  lista.forEach(j => {
+    const m = j.data?.slice(0,7); if(!m) return;
+    if(!porMes[m]) porMes[m] = 0;
+    porMes[m] += j.valor;
+  });
+
+  const periodo = ranDe||ranAte ? `${fmtD(ranDe)||'início'} a ${fmtD(ranAte)||'hoje'}` : 'Todo o período';
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Financeiro — Controle Audiovisual</title>
+  <style>
+    body{font-family:sans-serif;max-width:860px;margin:36px auto;padding:0 20px;color:#111;background:#f5f5f5}
+    h1{font-size:22px;margin-bottom:4px}
+    .sub{color:#777;font-size:12px;margin-bottom:20px}
+    .cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+    .c{background:#fff;border:1px solid #ddd;border-radius:6px;padding:14px 18px;flex:1;min-width:120px}
+    .cl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:6px}
+    .cv{font-size:20px;font-weight:700}
+    h2{font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#888;margin:24px 0 10px;border-bottom:1px solid #ddd;padding-bottom:6px}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:6px;overflow:hidden;margin-bottom:20px}
+    th{background:#111;color:#fff;padding:8px 12px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;text-align:left}
+    td{padding:9px 12px;border-bottom:1px solid #eee;font-size:13px}
+    tr:last-child td{border-bottom:none}
+    .green{color:#1a5c3a}.red{color:#c0392b}
+  </style></head><body>
+  <h1>Relatório Financeiro</h1>
+  <p class="sub">Gerado em ${new Date().toLocaleDateString('pt-BR')} · ${periodo} · ${lista.length} jobs</p>
+  <div class="cards">
+    <div class="c"><div class="cl">Faturamento</div><div class="cv">R$ ${total.toFixed(2).replace('.',',')}</div></div>
+    <div class="c"><div class="cl">Recebido</div><div class="cv green">R$ ${pago.toFixed(2).replace('.',',')}</div></div>
+    <div class="c"><div class="cl">A receber</div><div class="cv red">R$ ${pend.toFixed(2).replace('.',',')}</div></div>
+    <div class="c"><div class="cl">Jobs</div><div class="cv">${lista.length}</div></div>
+    <div class="c"><div class="cl">Horas</div><div class="cv">${horas.toFixed(0)}h</div></div>
+    <div class="c"><div class="cl">Ticket médio</div><div class="cv">R$ ${(total/lista.length).toFixed(0)}</div></div>
+  </div>
+  <h2>Por Produtora</h2>
+  <table><thead><tr><th>Produtora</th><th>Jobs</th><th>Faturado</th><th>Recebido</th><th>Pendente</th></tr></thead><tbody>
+  ${Object.entries(porProd).sort((a,b)=>b[1].total-a[1].total).map(([p,v])=>`<tr>
+    <td><strong>${p}</strong></td><td>${v.dias}</td>
+    <td>R$ ${v.total.toFixed(2).replace('.',',')}</td>
+    <td class="green">R$ ${v.pago.toFixed(2).replace('.',',')}</td>
+    <td class="red">R$ ${v.pend.toFixed(2).replace('.',',')}</td>
+  </tr>`).join('')}
+  </tbody></table>
+  <h2>Por Mês</h2>
+  <table><thead><tr><th>Mês</th><th>Faturamento</th></tr></thead><tbody>
+  ${Object.entries(porMes).sort().map(([m,v])=>`<tr>
+    <td>${MESES_PT[parseInt(m.split('-')[1])-1]} ${m.split('-')[0]}</td>
+    <td>R$ ${v.toFixed(2).replace('.',',')}</td>
+  </tr>`).join('')}
+  </tbody></table>
+  <h2>Todos os Jobs</h2>
+  <table><thead><tr><th>Data</th><th>Produtora</th><th>Job</th><th>Valor</th><th>Status</th></tr></thead><tbody>
+  ${lista.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(j=>`<tr>
+    <td>${fmtD(j.data)}</td><td>${j.produtora}</td><td>${j.job}</td>
+    <td>R$ ${j.valor.toFixed(2).replace('.',',')}</td><td>${j.status}</td>
+  </tr>`).join('')}
+  </tbody></table>
+  </body></html>`;
+
+  dl('financeiro_ca.html', html, 'text/html');
+  toast('Relatório financeiro exportado!');
+};
+
 // CONFIG
 window.renderConfigMetas=()=>{
   const prods=[...new Set(jobs.map(j=>j.produtora))];
-  const el=document.getElementById('metas-config');
-  if(!prods.length){el.innerHTML='<p style="font-size:12px;color:var(--ink3)">Registre jobs primeiro.</p>';return;}
-  el.innerHTML=prods.map(p=>'<div class="meta-item"><div class="meta-prod-name">'+p+'</div><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px;color:var(--ink3)">R$</span><input type="number" class="meta-input" data-prod="'+p+'" value="'+(metas[p]||'')+'" placeholder="0" min="0" step="100"></div></div>').join('');
+  const elMeta=document.getElementById('metas-config');
+  const elPgto=document.getElementById('pgto-config');
+  const vazio='<p style="font-size:12px;color:var(--ink3)">Registre jobs primeiro.</p>';
+  if(!prods.length){if(elMeta)elMeta.innerHTML=vazio;if(elPgto)elPgto.innerHTML=vazio;return;}
+  if(elMeta)elMeta.innerHTML=prods.map(p=>'<div class="meta-item"><div class="meta-prod-name">'+p+'</div><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px;color:var(--ink3)">R$</span><input type="number" class="meta-input" data-prod="'+p+'" value="'+(metas[p]||'')+'" placeholder="0" min="0" step="100"></div></div>').join('');
+  if(elPgto)elPgto.innerHTML=prods.map(p=>'<div class="meta-item"><div class="meta-prod-name">'+p+'</div><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px;color:var(--ink3)">Dia</span><input type="number" class="pgto-input" data-prod="'+p+'" value="'+(diasPgto[p]||'')+'" placeholder="1-31" min="1" max="31" style="width:80px;text-align:center"></div></div>').join('');
 };
 
 // EXPORT
