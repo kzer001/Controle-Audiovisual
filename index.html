@@ -692,7 +692,7 @@ tr:hover td { background:var(--surface); }
   <div class="page-header">
     <div><div class="page-title">ATLAS</div><div class="page-sub">Fluxo de caixa e planejamento financeiro</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <select id="atlas-mes-sel" class="btn btn-ghost btn-sm" onchange="renderAtlas()" style="padding:5px 10px;font-size:11px"></select>
+      <select id="atlas-mes-sel" class="btn btn-ghost btn-sm" onchange="atlasMesForcado=this.value;renderAtlas()" style="padding:5px 10px;font-size:11px"></select>
       <button class="btn btn-ghost btn-sm" onclick="renderAtlas()">↻ Atualizar</button>
       <button class="btn btn-ghost btn-sm" onclick="exportarCustos()">&#8595; Exportar Custos CSV</button>
     </div>
@@ -750,24 +750,13 @@ tr:hover td { background:var(--surface); }
       <div id="custo-lista"></div>
     </div>
 
-    <!-- Chat -->
+    <!-- Chat (em breve) -->
     <div class="card atlas-full">
-      <div class="card-label">Pergunte ao ATLAS</div>
-      <div class="atlas-chat-wrap">
-        <div class="atlas-chat-msgs" id="atlas-msgs">
-          <div class="atlas-msg bot">
-            <div class="atlas-msg-avatar">A</div>
-            <div class="atlas-msg-bubble">
-              Olá! Sou o <strong>ATLAS</strong>, seu gerente financeiro pessoal.<br>
-              Estou conectado aos seus jobs e custos de vida em tempo real.<br><br>
-              Posso te ajudar com fluxo de caixa, priorização de pagamentos e planejamento. O que quer saber?
-            </div>
-          </div>
-        </div>
-        <div class="atlas-chat-input-row">
-          <input class="atlas-chat-input" id="atlas-input" placeholder="Pergunte algo ao ATLAS..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();atlasEnviar()}">
-          <button class="btn btn-primary btn-sm" onclick="atlasEnviar()" id="atlas-send-btn">→</button>
-        </div>
+      <div class="card-label">Chat ATLAS — Em breve</div>
+      <div style="padding:20px;text-align:center;color:var(--ink3)">
+        <div style="font-size:28px;margin-bottom:12px;opacity:.4">💬</div>
+        <p style="font-size:13px;line-height:1.7">O chat com o ATLAS estará disponível em breve.<br>
+        <span style="font-size:11px">Enquanto isso, use o <strong style="color:var(--ink2)">fluxo de caixa</strong> e os <strong style="color:var(--ink2)">alertas</strong> acima para acompanhar sua situação financeira.</span></p>
       </div>
     </div>
 
@@ -1477,16 +1466,35 @@ COMPORTAMENTO: Direto e honesto. Use dados reais fornecidos. Responda em portugu
 
 let atlasMsgs=[];
 let atlasJobsCtx=[];
+let atlasMesForcado=null; // guarda mês selecionado pelo usuário
 
 window.renderAtlas=()=>{
   const agora=new Date();
   const sel=document.getElementById('atlas-mes-sel');
+  if(!sel)return;
+
+  // Mostra loading enquanto processa
+  const cfEl=document.getElementById('atlas-cashflow');
+  if(cfEl&&!jobs.length){
+    cfEl.innerHTML='<div class="empty" style="padding:30px;text-align:center"><div class="spinner" style="margin:0 auto 12px"></div><p style="color:var(--ink3);font-size:12px">Carregando dados...</p></div>';
+  }
+
   const mesesDisp=[...new Set(jobs.map(j=>j.data?.slice(0,7)).filter(Boolean))].sort().reverse();
   const mesAtual=agora.toISOString().slice(0,7);
   const todosMeses=[...new Set([mesAtual,...mesesDisp])].sort().reverse();
   const MESES_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  sel.innerHTML=todosMeses.map(m=>{const[y,mo]=m.split('-');return`<option value="${m}" ${m===mesAtual?'selected':''}>${MESES_PT[parseInt(mo)-1]} ${y}</option>`;}).join('');
+
+  // BUG FIX: preserva o mês que o usuário escolheu antes de reescrever o select
+  const mesSelecionadoAntes=atlasMesForcado||sel.value||mesAtual;
+  sel.innerHTML=todosMeses.map(m=>{
+    const[y,mo]=m.split('-');
+    return`<option value="${m}" ${m===mesSelecionadoAntes?'selected':''}>${MESES_PT[parseInt(mo)-1]} ${y}</option>`;
+  }).join('');
+  // se o mês salvo não existe nas opções, cai para atual
+  if(!todosMeses.includes(mesSelecionadoAntes)) sel.value=mesAtual;
+
   const mesSel=sel.value||mesAtual;
+  atlasMesForcado=mesSel; // persiste escolha
   const[anoSel,moSel]=mesSel.split('-').map(Number);
   document.getElementById('atlas-period-lbl').textContent=MESES_PT[moSel-1]+' '+anoSel;
 
@@ -1519,12 +1527,24 @@ window.renderAtlas=()=>{
     if(!eventos[key])eventos[key]={entradas:[],saidas:[]};
     eventos[key].entradas.push({nome:e.nome,val:e.val});
   });
+  // Agrupa jobs por data de pgto (ou data do job se pgto vazio)
+  // BUG FIX: normaliza datas para garantir que ficam dentro do mês selecionado
   const porPgto={};
-  jobsMes.forEach(j=>{const pgto=j.pgto||j.data;if(!pgto)return;if(!porPgto[pgto])porPgto[pgto]={total:0,jobs:[]};porPgto[pgto].total+=j.valor;porPgto[pgto].jobs.push(j);});
+  jobsMes.forEach(j=>{
+    // usa pgto se preenchido E pertence ao mês selecionado, senão usa data do job
+    let pgto=j.pgto||j.data;
+    if(!pgto)return;
+    // se pgto for de outro mês, usa data do job mesmo
+    if(!pgto.startsWith(mesSel)) pgto=j.data||pgto;
+    if(!porPgto[pgto])porPgto[pgto]={total:0,jobs:[]};
+    porPgto[pgto].total+=j.valor;
+    porPgto[pgto].jobs.push(j);
+  });
   Object.entries(porPgto).forEach(([dia,data])=>{
     if(!eventos[dia])eventos[dia]={entradas:[],saidas:[]};
     const nomes=[...new Set(data.jobs.map(j=>j.produtora))].join(', ');
-    eventos[dia].entradas.push({nome:nomes,val:data.total,tag:'entrada',status:data.jobs[0]?.status});
+    const allPago=data.jobs.every(j=>j.status==='pago');
+    eventos[dia].entradas.push({nome:nomes,val:data.total,tag:'entrada',status:allPago?'pago':'pendente',jobs:data.jobs});
   });
   custosAtivos.forEach(c=>{
     if(!c.dia)return;
@@ -1536,7 +1556,13 @@ window.renderAtlas=()=>{
   const dias=Object.keys(eventos).sort();
   let saldoAcum=0;
   const hoje=new Date().toISOString().slice(0,10);
-  const cfHTML=dias.map(dia=>{
+  const cfHTML=dias.length===0
+    ? `<div class="empty" style="padding:30px">
+        <div class="empty-icon">📊</div>
+        <p>Nenhum dado para este mês.<br>
+        <span style="font-size:11px;color:var(--ink3)">Os custos fixos aparecem mesmo sem jobs. Verifique se há jobs cadastrados neste período.</span></p>
+       </div>`
+    : dias.map(dia=>{
     const ev=eventos[dia];
     const entTotal=ev.entradas.reduce((s,e)=>s+e.val,0);
     const saiTotal=ev.saidas.reduce((s,s2)=>s+s2.val,0);
@@ -1548,16 +1574,27 @@ window.renderAtlas=()=>{
     const saldoDia=entTotal-saiTotal;
     const saldoCls=saldoDia>=0?'pos':'neg';
     const saldoStr=(saldoDia>=0?'+':'−')+fmtR(Math.abs(saldoDia));
-    return `<div class="cashflow-day" style="${passado?'opacity:.6':''}">
-      <div class="cashflow-day-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+    // Detalhe de cada job dentro da entrada
+    const entDetalhe=ev.entradas.map(e=>{
+      const jobsDetalhe=e.jobs?e.jobs.map(j=>`<div style="display:flex;justify-content:space-between;padding:4px 0 4px 16px;font-size:11px;color:var(--ink3)"><span>${sanitize(j.job)} <span style="font-size:9px;padding:1px 4px;border-radius:3px;background:${j.status==='pago'?'#1a2e1a':'#2a2a1a'};color:${j.status==='pago'?'#7c7':'#bb8'}">${j.status}</span></span><span>R$ ${j.valor.toFixed(2).replace('.',',')}</span></div>`).join(''):'';
+      return`<div class="cashflow-item"><div class="cashflow-item-name"><span class="cashflow-item-tag entrada">${e.tag||'denadai'}</span>${sanitize(e.nome)}${e.status&&e.status!=='pago'?'<span style="font-size:9px;color:#bb8;margin-left:4px">⏳ pendente</span>':'<span style="font-size:9px;color:#7c7;margin-left:4px">✓ pago</span>'}</div><div class="cashflow-item-val pos">+${fmtR(e.val)}</div></div>${jobsDetalhe}`;
+    }).join('');
+    return `<div class="cashflow-day" style="${passado?'opacity:.65':''}">
+      <div class="cashflow-day-header" onclick="const b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none'">
         <div class="cashflow-day-date">
           <div class="cashflow-day-dot ${dotCls}"></div>
-          <div><div class="cashflow-day-lbl">Dia ${diaNum}</div><div class="cashflow-day-sub">${ev.entradas.length} entrada(s) · ${ev.saidas.length} saída(s)</div></div>
+          <div>
+            <div class="cashflow-day-lbl">Dia ${diaNum}${passado?' <span style="font-size:9px;color:var(--ink3)">(passado)</span>':''}</div>
+            <div class="cashflow-day-sub">${ev.entradas.length} entrada(s) · ${ev.saidas.length} saída(s)</div>
+          </div>
         </div>
-        <div><div class="cashflow-day-val ${saldoCls}">${saldoStr}</div><div style="font-size:9px;color:var(--ink3);text-align:right;margin-top:2px">acum: ${saldoAcum>=0?'+':''}${fmtR(Math.abs(saldoAcum))}</div></div>
+        <div>
+          <div class="cashflow-day-val ${saldoCls}">${saldoStr}</div>
+          <div style="font-size:9px;color:var(--ink3);text-align:right;margin-top:2px">acum: ${saldoAcum>=0?'+':''}${fmtR(Math.abs(saldoAcum))}</div>
+        </div>
       </div>
       <div class="cashflow-day-body" style="display:none">
-        ${ev.entradas.map(e=>`<div class="cashflow-item"><div class="cashflow-item-name"><span class="cashflow-item-tag entrada">${e.tag||'denadai'}</span>${sanitize(e.nome)}${e.status&&e.status!=='pago'?'<span style="font-size:9px;color:#bb8;margin-left:4px">pendente</span>':''}</div><div class="cashflow-item-val pos">+${fmtR(e.val)}</div></div>`).join('')}
+        ${entDetalhe}
         ${ev.saidas.map(s=>`<div class="cashflow-item"><div class="cashflow-item-name"><span class="cashflow-item-tag ${s.tipo}">${s.tipo}</span>${sanitize(s.nome)}</div><div class="cashflow-item-val neg">−${fmtR(s.val)}</div></div>`).join('')}
       </div>
     </div>`;
